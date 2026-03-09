@@ -26,7 +26,7 @@
             --border-color: #7f8c8d;
             --input-bg: #2c3e50;
             --canvas-border: #95a5a6;
-            --canvas-bg: #ecf0f1; /* 다크모드에서도 선이 잘 보이도록 캔버스는 밝게 유지 */
+            --canvas-bg: #ecf0f1;
             --shadow-color: rgba(0, 0, 0, 0.4);
         }
 
@@ -228,8 +228,8 @@
 
         <div class="top-controls">
             <div>
-                <label><input type="checkbox" id="easyMode" checked> easy</label>
-                <label style="margin-left: 8px;"><input type="checkbox" id="voiceMode"> voice</label>
+                <label><input type="checkbox" id="easyMode"> easy</label>
+                <label style="margin-left: 8px;"><input type="checkbox" id="voiceMode" checked> voice</label>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
                 <label class="theme-toggle" title="Toggle Light/Dark Mode">
@@ -327,7 +327,6 @@
         }
     }
 
-    // --- 다크 모드 토글 이벤트 ---
     document.getElementById('themeToggle').addEventListener('change', function() {
         if (this.checked) {
             document.body.classList.add('dark-mode');
@@ -337,7 +336,6 @@
             document.getElementById('themeIcon').innerText = '🌙';
         }
     });
-    // ----------------------------
 
     document.getElementById('btnGenerate').addEventListener('click', generatePosits);
     document.getElementById('btnCheck').addEventListener('click', checkAnswer);
