@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bullseye Trainer</title>
+    <style>
+        /* Light & Dark 테마 색상 변수 정의 */
+        :root {
+            --bg-color: #f0f2f5;
+            --panel-bg: #ffffff;
+            --text-color: #2c3e50;
+            --muted-color: #7f8c8d;
+            --border-color: #bdc3c7;
+            --input-bg: #ffffff;
+            --canvas-bg: #fdfdfd;
+            --shadow-color: rgba(0, 0, 0, 0.15);
+            --dash-line-color: rgba(0, 0, 0, 0.4);
+
+            /* BRA Grid 색상 (Light Mode) */
+            --bra-grid-dark: rgba(0, 0, 0, 0.4);
+            --bra-grid-light: rgba(0, 0, 0, 0.15);
+            --bra-highlight-range: #ff9999;
+            --bra-text-range: #c0392b;
+            --bra-text-bearing: #2c3e50;
+            --bra-outer-ring: #000000;
+            --bra-bullseye: rgba(0, 0, 0, 0.5);
+        }
+
+        body.dark-mode {
+            --bg-color: #1a252f;
+            --panel-bg: #2c3e50;
+            --text-color: #ecf0f1;
+            --muted-color: #95a5a6;
+            --border-color: #5c6a79;
+            --input-bg: #34495e;
+            --canvas-bg: #22313f;
+            --shadow-color: rgba(0, 0, 0, 0.5);
+            --dash-line-color: rgba(255, 255, 255, 0.5);
+
+            /* BRA Grid 색상 (Dark Mode) */
+            --bra-grid-dark: rgba(255, 255, 255, 0.5);
+            --bra-grid-light: rgba(255, 255, 255, 0.15);
+            --bra-highlight-range: rgba(255, 118, 117, 0.8);
+            --bra-text-range: #ff7675;
+            --bra-text-bearing: #ffffff;
+            --bra-outer-ring: rgba(255, 255, 255, 0.7);
+            --bra-bullseye: rgba(255, 255, 255, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text-color);
+            padding: 20px 10px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .app-container {
+            position: relative;
+            display: flex;
+            flex-direction: row;
+            background-color: var(--panel-bg);
+            padding: 40px 30px 30px 30px;
+            gap: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px var(--shadow-color);
+            max-width: 100%;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 20px;
+            line-height: 1;
+            z-index: 10;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            width: 280px;
+            gap: 15px;
+        }
+
+        .title-container {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .title-container h1 {
+            margin: 0;
+            font-size: 26px;
+            color: #3498db;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        .title-container .subtitle {
+            margin-top: 5px;
+            font-size: 13px;
+            color: var(--muted-color);
+            font-style: italic;
+            transition: color 0.3s;
+        }
+
+        .right-panel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            background-color: var(--canvas-bg);
+            border-radius: 8px;
+            border: none;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            max-width: 100%;
+            height: auto;
+            cursor: crosshair;
+            touch-action: none;
+            transition: background-color 0.3s;
+        }
+        .controls-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 5px;
+        }
+        .top-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+        }
+        .top-controls-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .plot-controls {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        /* Auto Refresh Number Input Style */
+        .refresh-input {
+            width: 45px;
+            padding: 3px;
+            margin-left: 5px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        #rateDisplay {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--muted-color);
+            transition: color 0.3s;
+        }
+
+        .help-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background-color: var(--muted-color);
+            color: var(--panel-bg);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 16px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: help;
+            margin-left: 6px;
+            position: relative;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .help-icon::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 150%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            width: 260px;
+            font-size: 12px;
+            font-weight: normal;
+            line-height: 1.5;
+            text-align: left;
+            white-space: pre-line;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.15s ease-in-out;
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .help-icon::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.15s ease-in-out;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .help-icon:hover::after,
+        .help-icon:hover::before {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #3498db;
+            color: white;
+            border-radius: 8px;
+            transition: background-color 0.2s, transform 0.1s;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        fieldset {
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            margin: 0;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+        legend {
+            font-size: 14px;
+            color: var(--muted-color);
+            padding: 0 10px;
+            transition: color 0.3s;
+        }
+        .posit-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+        .posit-row:last-child {
+            margin-bottom: 0;
+        }
+        .posit-value {
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            width: 140px;
+            text-align: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            border-radius: 4px;
+            transition: border-color 0.3s, opacity 0.15s;
+        }
+        .blue-bg { background-color: #3498db; color: white; border-color: #2980b9; }
+        .red-bg { background-color: #e74c3c; color: white; border-color: #c0392b; }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 5px;
+            font-size: 15px;
+        }
+        .input-row input {
+            width: 80px;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+        #btnCheck {
+            width: auto;
+            margin-top: 0;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        #resultBox {
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.3);
+            margin-top: 5px;
+        }
+        .correct { background-color: #2ecc71; color: white; }
+        .incorrect { background-color: #e74c3c; color: white; }
+
+        @media (max-width: 768px) {
+            body { align-items: flex-start; }
+            .app-container {
+                flex-direction: column;
+                padding: 30px 20px 20px 20px;
+                gap: 20px;
+                width: 100%;
+                max-width: 400px;
+            }
+            .left-panel { width: 100%; }
+            canvas { width: 100%; max-width: 380px; }
+            .theme-toggle { top: 15px; right: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <label class="theme-toggle" title="Toggle Light/Dark Mode">
+        <input type="checkbox" id="themeToggle" style="display:none;">
+        <span id="themeIcon">🌙</span>
+    </label>
+
+    <div class="left-panel">
+
+        <div class="title-container">
+            <h1>BULLSEYE TRAINER</h1>
+            <div class="subtitle">by Badger 🇰🇷 v0.1</div>
+        </div>
+
+        <div class="controls-group">
+            <div class="top-controls">
+                <div class="top-controls-left">
+                    <label><input type="checkbox" id="easyMode"> Easy</label>
+                    <label><input type="checkbox" id="voiceMode" checked> Voice</label>
+                    <label><input type="checkbox" id="showBraMode" checked> Show BRA</label>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <span id="rateDisplay">Score: 0% (0/0)</span>
+                </div>
+            </div>
+
+            <div class="plot-controls">
+                <label><input type="checkbox" id="plotMode"> Manual Plotting</label>
+                <span class="help-icon" data-tooltip="동심원에 예상 위치를 직접 마킹해 볼 수 있습니다. 첫 번째 클릭은 내 기체(파란색), 두 번째 클릭은 타겟(빨간색)으로 표시됩니다.
+
+You can manually mark the estimated positions on the concentric circles. The first click marks your aircraft (blue), and the second click marks the target (red).">?</span>
+            </div>
+
+            <div class="plot-controls">
+                <label><input type="checkbox" id="autoRefreshMode" checked> Auto refresh in</label>
+                <input type="number" id="refreshInterval" class="refresh-input" value="10" min="1" max="99">
+                <span style="margin-left: 4px; font-size: 14px; color: var(--muted-color);">s</span>
+            </div>
+        </div>
+
+        <button id="btnGenerate">GENERATE</button>
+
+        <fieldset>
+            <legend>Posit</legend>
+            <div class="posit-row" style="margin-bottom: 4px;">
+                <span>Own Bullseye:</span>
+                <div class="posit-value blue-bg" id="myPosit">---° | -- nm</div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+                <label style="font-size: 12px; color: var(--muted-color); cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    <input type="checkbox" id="fixOwnBullseye"> Fix Own Bullseye
+                </label>
+            </div>
+
+            <div class="posit-row">
+                <span>Target Bullseye:</span>
+                <div class="posit-value red-bg" id="tgtPosit">---° | -- nm</div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Bearing to target</legend>
+            <div class="input-row">
+                <input type="number" id="inputBearing" inputmode="numeric" pattern="[0-9]*" placeholder="000">
+                <button id="btnCheck">SUBMIT</button>
+            </div>
+        </fieldset>
+
+        <div id="resultBox"></div>
+    </div>
+
+    <div class="right-panel">
+        <canvas id="radarCanvas" width="400" height="400"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('radarCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const CENTER = 200;
+    const RADIUS = 170;
+    const MAX_RANGE = 150;
+    const MIN_RANGE = 30;
+    const SCALE = RADIUS / MAX_RANGE;
+
+    let myData = { brg: 0, rng: 0 };
+    let tgtData = { brg: 0, rng: 0 };
+    let isCorrect = false;
+    let isChecked = false;
+    let trueBearing = 0;
+
+    let correctAnswers = 0;
+    let totalAttempts = 0;
+    let isCurrentProblemScored = false;
+
+    let animationStartTime = 0;
+    let isAnimating = false;
+    const ANIMATION_DURATION = 300;
+
+    let userMyPos = null;
+    let userTgtPos = null;
+    let myVoice = null;
+
+    let autoRefreshTimeout = null;
+    let countdownInterval = null;
+
+    let themeColors = {};
+    function updateThemeColors() {
+        const rootStyle = getComputedStyle(document.body);
+        themeColors.gridDark = rootStyle.getPropertyValue('--bra-grid-dark').trim() || 'rgba(0,0,0,0.4)';
+        themeColors.gridLight = rootStyle.getPropertyValue('--bra-grid-light').trim() || 'rgba(0,0,0,0.15)';
+        themeColors.highlightRange = rootStyle.getPropertyValue('--bra-highlight-range').trim() || '#ff9999';
+        themeColors.textRange = rootStyle.getPropertyValue('--bra-text-range').trim() || '#c0392b';
+        themeColors.textBearing = rootStyle.getPropertyValue('--bra-text-bearing').trim() || '#2c3e50';
+        themeColors.outerRing = rootStyle.getPropertyValue('--bra-outer-ring').trim() || '#000000';
+        themeColors.bullseye = rootStyle.getPropertyValue('--bra-bullseye').trim() || 'rgba(0,0,0,0.5)';
+    }
+
+    function initVoices() {
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length === 0) return;
+
+        const preferredNames = ['Alex', 'Fred', 'Microsoft David', 'Google US English'];
+        for (let name of preferredNames) {
+            const voice = voices.find(v => v.name.includes(name) && v.lang.includes('en-US'));
+            if (voice) {
+                myVoice = voice;
+                return;
+            }
+        }
+        if (!myVoice) {
+            myVoice = voices.find(v => v.lang.includes('en-US') && v.name.toLowerCase().includes('male'));
+        }
+        if (!myVoice) {
+            myVoice = voices.find(v => v.lang.includes('en-US'));
+        }
+    }
+
+    if ('speechSynthesis' in window) {
+        initVoices();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = initVoices;
+        }
+    }
+
+    document.getElementById('themeToggle').addEventListener('change', function() {
+        if (this.checked) {
+            document.body.classList.add('dark-mode');
+            document.getElementById('themeIcon').innerText = '☀️';
+        } else {
+            document.body.classList.remove('dark-mode');
+            document.getElementById('themeIcon').innerText = '🌙';
+        }
+        setTimeout(() => {
+            updateThemeColors();
+            drawRadar();
+        }, 0);
+    });
+
+    document.getElementById('plotMode').addEventListener('change', function() {
+        if (!this.checked) {
+            userMyPos = null;
+            userTgtPos = null;
+            drawRadar();
+        }
+    });
+
+    document.getElementById('showBraMode').addEventListener('change', drawRadar);
+
+    // Auto Refresh 토글 시 카운트다운 정지/재개 로직
+    document.getElementById('autoRefreshMode').addEventListener('change', function() {
+        if (!this.checked) {
+            clearTimeout(autoRefreshTimeout);
+            clearInterval(countdownInterval);
+            document.getElementById('btnGenerate').innerText = "GENERATE";
+        } else if (isChecked) {
+            // 정답 제출 상태에서 체크박스를 켜면 즉시 카운트다운 다시 시작
+            startCountdown();
+        }
+    });
+
+    // 시간 숫자 변경 시 즉각 반영
+    document.getElementById('refreshInterval').addEventListener('input', function() {
+        if (isChecked && document.getElementById('autoRefreshMode').checked) {
+            startCountdown();
+        }
+    });
+
+    document.getElementById('btnGenerate').addEventListener('click', function(e) {
+        const btn = e.target;
+        btn.style.transform = 'scale(0.97)';
+        setTimeout(() => { btn.style.transform = 'scale(1)'; }, 100);
+        generatePosits();
+    });
+
+    document.getElementById('btnCheck').addEventListener('click', checkAnswer);
+    document.getElementById('easyMode').addEventListener('change', drawRadar);
+    document.getElementById('voiceMode').addEventListener('change', updateTargetPositUI);
+
+    document.getElementById('inputBearing').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            this.blur();
+            checkAnswer();
+        }
+    });
+
+    canvas.addEventListener('pointerdown', function(event) {
+        const plotMode = document.getElementById('plotMode').checked;
+        if (!plotMode) return;
+
+        const easyMode = document.getElementById('easyMode').checked;
+        if (easyMode || isChecked) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        const x = (event.clientX - rect.left) * scaleX;
+        const y = (event.clientY - rect.top) * scaleY;
+
+        if (!userMyPos) {
+            userMyPos = {x, y};
+        } else if (!userTgtPos) {
+            userTgtPos = {x, y};
+        } else {
+            userMyPos = {x, y};
+            userTgtPos = null;
+        }
+        drawRadar();
+    });
+
+    function init() {
+        updateThemeColors();
+        drawRadar();
+    }
+
+    function generatePosits() {
+        try {
+            clearTimeout(autoRefreshTimeout);
+            clearInterval(countdownInterval);
+            document.getElementById('btnGenerate').innerText = "GENERATE";
+
+            isAnimating = false;
+            isCorrect = false;
+            isChecked = false;
+            isCurrentProblemScored = false;
+
+            userMyPos = null;
+            userTgtPos = null;
+
+            const isFixOwn = document.getElementById('fixOwnBullseye').checked;
+            if (!isFixOwn || myData.rng === 0) {
+                myData.brg = Math.floor(Math.random() * 361);
+                myData.rng = Math.floor(Math.random() * (MAX_RANGE - MIN_RANGE + 1)) + MIN_RANGE;
+            }
+
+            tgtData.brg = Math.floor(Math.random() * 361);
+            tgtData.rng = Math.floor(Math.random() * (MAX_RANGE - MIN_RANGE + 1)) + MIN_RANGE;
+
+            const myPositEl = document.getElementById('myPosit');
+            myPositEl.innerText = `${myData.brg}° | ${myData.rng} nm`;
+
+            myPositEl.style.opacity = isFixOwn ? '0.7' : '0.4';
+            setTimeout(() => { myPositEl.style.opacity = '1'; }, 150);
+
+            updateTargetPositUI();
+
+            if (document.getElementById('voiceMode').checked) {
+                speakTargetPosit(tgtData.brg, tgtData.rng);
+            }
+
+            const inputField = document.getElementById('inputBearing');
+            inputField.value = '';
+
+            const resultBox = document.getElementById('resultBox');
+            resultBox.style.display = 'none';
+
+            calculateTrueBearing();
+            drawRadar();
+
+            setTimeout(() => {
+                inputField.focus();
+            }, 50);
+
+        } catch (error) {
+            console.error("Critical error during Generation:", error);
+            alert("문제 생성 중 예외 오류가 발생했습니다. 브라우저를 새로고침 해주세요.");
+        }
+    }
+
+    function updateTargetPositUI() {
+        if (tgtData.rng === 0 && tgtData.brg === 0) return;
+
+        const isVoice = document.getElementById('voiceMode').checked;
+        if (isVoice && !isChecked) {
+            document.getElementById('tgtPosit').innerText = `---° | -- nm`;
+        } else {
+            document.getElementById('tgtPosit').innerText = `${tgtData.brg}° | ${tgtData.rng} nm`;
+        }
+    }
+
+    function formatBearingForSpeech(brg) {
+        return brg.toString().padStart(3, '0').split('').join(' ');
+    }
+
+    function speakTargetPosit(brg, rng) {
+        try {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const spokenBearing = formatBearingForSpeech(brg);
+                const textToSpeak = `Bullseye ${spokenBearing}, ${rng} miles.`;
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'en-US';
+                utterance.rate = 1.0;
+                if (myVoice) utterance.voice = myVoice;
+                window.speechSynthesis.speak(utterance);
+            }
+        } catch (error) {
+            console.error("Speech Synthesis Error:", error);
+        }
+    }
+
+    function calculateTrueBearing() {
+        const myRad = myData.brg * (Math.PI / 180);
+        const myX = myData.rng * Math.sin(myRad);
+        const myY = -myData.rng * Math.cos(myRad);
+
+        const tgtRad = tgtData.brg * (Math.PI / 180);
+        const tgtX = tgtData.rng * Math.sin(tgtRad);
+        const tgtY = -tgtData.rng * Math.cos(tgtRad);
+
+        const dx = tgtX - myX;
+        const dy = tgtY - myY;
+
+        let angleRad = Math.atan2(dx, -dy);
+        let angleDeg = angleRad * (180 / Math.PI);
+
+        if (angleDeg < 0) angleDeg += 360;
+        trueBearing = Math.round(angleDeg);
+    }
+
+    function updateScoreDisplay() {
+        let percentage = totalAttempts === 0 ? 0 : Math.round((correctAnswers / totalAttempts) * 100);
+        document.getElementById('rateDisplay').innerText = `Score: ${percentage}% (${correctAnswers}/${totalAttempts})`;
+    }
+
+    function checkAnswer() {
+        if (isAnimating) return;
+
+        const inputVal = parseInt(document.getElementById('inputBearing').value, 10);
+        if (isNaN(inputVal)) {
+            alert("Bearing 값을 입력해주세요.");
+            return;
+        }
+
+        isChecked = true;
+
+        let diff = Math.abs(inputVal - trueBearing) % 360;
+        let finalDiff = diff > 180 ? 360 - diff : diff;
+
+        const resultBox = document.getElementById('resultBox');
+        resultBox.style.display = 'block';
+
+        document.getElementById('tgtPosit').innerText = `${tgtData.brg}° | ${tgtData.rng} nm`;
+
+        if (finalDiff <= 20) {
+            isCorrect = true;
+            resultBox.innerText = `Good! ${trueBearing}° (±20°)`;
+            resultBox.className = 'correct';
+            if (!isCurrentProblemScored) {
+                correctAnswers++;
+                totalAttempts++;
+                isCurrentProblemScored = true;
+            }
+        } else {
+            isCorrect = false;
+            resultBox.innerText = `Incorrect! True Bearing: ${trueBearing}°`;
+            resultBox.className = 'incorrect';
+            if (!isCurrentProblemScored) {
+                totalAttempts++;
+                isCurrentProblemScored = true;
+            }
+        }
+
+        updateScoreDisplay();
+        startAnimateRadar();
+        startCountdown();
+    }
+
+    function startCountdown() {
+        clearTimeout(autoRefreshTimeout);
+        clearInterval(countdownInterval);
+
+        const isAutoRefresh = document.getElementById('autoRefreshMode').checked;
+        const btn = document.getElementById('btnGenerate');
+
+        if (!isAutoRefresh) {
+            btn.innerText = "GENERATE";
+            return;
+        }
+
+        let timeLeft = parseInt(document.getElementById('refreshInterval').value, 10);
+        if (isNaN(timeLeft) || timeLeft <= 0) timeLeft = 10;
+
+        btn.innerText = `GENERATE (refresh in ${timeLeft}s)`;
+
+        countdownInterval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft > 0) {
+                btn.innerText = `GENERATE (refresh in ${timeLeft}s)`;
+            } else {
+                clearInterval(countdownInterval);
+            }
+        }, 1000);
+
+        autoRefreshTimeout = setTimeout(() => {
+            btn.style.transform = 'scale(0.97)';
+            setTimeout(() => { btn.style.transform = 'scale(1)'; }, 100);
+            generatePosits();
+        }, timeLeft * 1000);
+    }
+
+    function startAnimateRadar() {
+        isAnimating = true;
+        animationStartTime = performance.now();
+        requestAnimationFrame(animateLoop);
+    }
+
+    function animateLoop(currentTime) {
+        if (!isAnimating) return;
+        const elapsedTime = currentTime - animationStartTime;
+        let progress = elapsedTime / ANIMATION_DURATION;
+        if (progress > 1) progress = 1;
+
+        drawRadar(progress);
+
+        if (progress < 1) {
+            requestAnimationFrame(animateLoop);
+        } else {
+            isAnimating = false;
+        }
+    }
+
+    function lerp(start, end, amt) {
+        return start + (end - start) * amt;
+    }
+
+    function drawRadar(progress = 1) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const showBra = document.getElementById('showBraMode').checked;
+
+        if (showBra) {
+            for (let rng = 10; rng <= MAX_RANGE; rng += 10) {
+                if (rng === MAX_RANGE) continue;
+                ctx.beginPath();
+                ctx.arc(CENTER, CENTER, rng * SCALE, 0, 2 * Math.PI);
+
+                if (rng === 50 || rng === 100) {
+                    ctx.strokeStyle = themeColors.highlightRange;
+                    ctx.setLineDash([]);
+                    ctx.lineWidth = 1;
+                } else {
+                    ctx.strokeStyle = themeColors.gridLight;
+                    ctx.setLineDash([4, 4]);
+                    ctx.lineWidth = 1;
+                }
+                ctx.stroke();
+            }
+        }
+
+        const specialBearings = [0, 45, 90, 135, 180, 225, 270, 315];
+        for (let deg = 0; deg < 360; deg += 15) {
+            if (!showBra && deg % 90 !== 0) continue;
+
+            const rad = deg * (Math.PI / 180);
+            const endX = CENTER + RADIUS * Math.sin(rad);
+            const endY = CENTER - RADIUS * Math.cos(rad);
+
+            ctx.beginPath();
+            ctx.moveTo(CENTER, CENTER);
+            ctx.lineTo(endX, endY);
+
+            if (!showBra || specialBearings.includes(deg)) {
+                ctx.strokeStyle = themeColors.gridDark;
+                ctx.setLineDash([]);
+            } else {
+                ctx.strokeStyle = themeColors.gridLight;
+                ctx.setLineDash([4, 4]);
+            }
+            ctx.stroke();
+        }
+
+        ctx.setLineDash([]);
+
+        ctx.beginPath();
+        ctx.arc(CENTER, CENTER, RADIUS, 0, 2 * Math.PI);
+        ctx.strokeStyle = themeColors.outerRing;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        if (showBra) {
+            ctx.font = "bold 13px 'Segoe UI', Arial, sans-serif";
+            ctx.fillStyle = themeColors.textBearing;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            for (let deg = 0; deg < 360; deg += 15) {
+                const rad = deg * (Math.PI / 180);
+                const degText = deg === 0 ? "360" : deg.toString().padStart(3, '0');
+
+                const textWidth = ctx.measureText(degText).width;
+                const textHeight = 10;
+                const gap = 3;
+
+                const dynamicOffset = (textWidth / 2) * Math.abs(Math.sin(rad)) + (textHeight / 2) * Math.abs(Math.cos(rad));
+                const totalRadius = RADIUS + gap + dynamicOffset;
+
+                const textX = CENTER + totalRadius * Math.sin(rad);
+                const textY = CENTER - totalRadius * Math.cos(rad);
+
+                ctx.fillText(degText, textX, textY);
+            }
+
+            ctx.font = "10px 'Segoe UI', Arial, sans-serif";
+            ctx.fillStyle = themeColors.textRange;
+            ctx.textAlign = "left";
+            ctx.textBaseline = "bottom";
+
+            const labelRanges = [50, 100];
+            labelRanges.forEach(rng => {
+                const dist = rng * SCALE;
+                const text = rng.toString();
+
+                ctx.fillText(text, CENTER + 3, CENTER - dist - 3);
+                ctx.fillText(text, CENTER + 3, CENTER + dist - 3);
+                ctx.fillText(text, CENTER + dist + 3, CENTER - 3);
+                ctx.fillText(text, CENTER - dist + 3, CENTER - 3);
+            });
+        }
+
+        ctx.strokeStyle = themeColors.bullseye;
+        ctx.lineWidth = 1;
+        for (let r = 5; r <= 15; r += 5) {
+            ctx.beginPath();
+            ctx.arc(CENTER, CENTER, r, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.arc(CENTER, CENTER, 3, 0, 2 * Math.PI);
+        ctx.fillStyle = '#e74c3c';
+        ctx.fill();
+
+        const easyMode = document.getElementById('easyMode').checked;
+
+        const myRad = myData.brg * (Math.PI / 180);
+        const myX = CENTER + (myData.rng * Math.sin(myRad) * SCALE);
+        const myY = CENTER - (myData.rng * Math.cos(myRad) * SCALE);
+
+        const tgtRad = tgtData.brg * (Math.PI / 180);
+        const tgtX = CENTER + (tgtData.rng * Math.sin(tgtRad) * SCALE);
+        const tgtY = CENTER - (tgtData.rng * Math.cos(tgtRad) * SCALE);
+
+        if (!easyMode && !isChecked) {
+            if (userMyPos) {
+                ctx.beginPath();
+                ctx.arc(userMyPos.x, userMyPos.y, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = '#3498db';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            if (userTgtPos) {
+                ctx.beginPath();
+                ctx.arc(userTgtPos.x, userTgtPos.y, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = '#e74c3c';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(userMyPos.x, userMyPos.y);
+                ctx.lineTo(userTgtPos.x, userTgtPos.y);
+                ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--dash-line-color').trim();
+                ctx.setLineDash([5, 5]);
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        if (isChecked && userMyPos) {
+            ctx.beginPath();
+            ctx.arc(userMyPos.x, userMyPos.y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(52, 152, 219, 0.4)';
+            ctx.fill();
+        }
+        if (isChecked && userTgtPos) {
+            ctx.beginPath();
+            ctx.arc(userTgtPos.x, userTgtPos.y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(231, 76, 60, 0.4)';
+            ctx.fill();
+        }
+
+        if (easyMode || isChecked) {
+            ctx.beginPath();
+            ctx.arc(myX, myY, 4, 0, 2 * Math.PI);
+            ctx.fillStyle = '#3498db';
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(tgtX, tgtY, 4, 0, 2 * Math.PI);
+            ctx.fillStyle = '#e74c3c';
+            ctx.fill();
+        }
+
+        if (isChecked) {
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(myX, myY);
+
+            if (progress <= 0.5) {
+                const p1 = progress * 2;
+                ctx.lineTo(lerp(myX, CENTER, p1), lerp(myY, CENTER, p1));
+            } else {
+                ctx.lineTo(CENTER, CENTER);
+                const p2 = (progress - 0.5) * 2;
+                ctx.lineTo(lerp(CENTER, tgtX, p2), lerp(CENTER, tgtY, p2));
+            }
+            ctx.stroke();
+
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(myX, myY);
+            ctx.lineTo(lerp(myX, tgtX, progress), lerp(myY, tgtY, progress));
+            ctx.stroke();
+        }
+    }
+
+    init();
+</script>
+
+</body>
+</html>
