@@ -16,6 +16,7 @@
             --canvas-border: #bdc3c7;
             --canvas-bg: #fdfdfd;
             --shadow-color: rgba(0, 0, 0, 0.15);
+            --dash-line-color: rgba(0, 0, 0, 0.4);
         }
 
         body.dark-mode {
@@ -28,6 +29,7 @@
             --canvas-border: #95a5a6;
             --canvas-bg: #ecf0f1;
             --shadow-color: rgba(0, 0, 0, 0.4);
+            --dash-line-color: rgba(0, 0, 0, 0.5);
         }
 
         * {
@@ -93,14 +95,25 @@
             border: 2px solid var(--canvas-border);
             max-width: 100%;
             height: auto;
+            cursor: crosshair;
             transition: background-color 0.3s, border-color 0.3s;
+        }
+        .controls-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
         }
         .top-controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 15px;
-            margin-top: 10px;
+        }
+        .plot-controls {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
         }
         #rateDisplay {
             font-size: 14px;
@@ -113,6 +126,68 @@
             font-size: 18px;
             line-height: 1;
         }
+
+        /* --- 커스텀 툴팁(말풍선) 디자인 --- */
+        .help-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background-color: var(--muted-color);
+            color: var(--panel-bg);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 16px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: help;
+            margin-left: 6px;
+            position: relative;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .help-icon::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 150%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            width: 220px;
+            font-size: 12px;
+            font-weight: normal;
+            line-height: 1.5;
+            text-align: left;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.15s ease-in-out;
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .help-icon::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.15s ease-in-out;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .help-icon:hover::after,
+        .help-icon:hover::before {
+            opacity: 1;
+            visibility: visible;
+        }
+        /* --------------------------------- */
+
         button {
             padding: 15px;
             font-size: 16px;
@@ -226,17 +301,24 @@
             <div class="subtitle">reproduced by Badger</div>
         </div>
 
-        <div class="top-controls">
-            <div>
-                <label><input type="checkbox" id="easyMode"> easy</label>
-                <label style="margin-left: 8px;"><input type="checkbox" id="voiceMode" checked> voice</label>
+        <div class="controls-group">
+            <div class="top-controls">
+                <div>
+                    <label><input type="checkbox" id="easyMode"> Easy</label>
+                    <label style="margin-left: 8px;"><input type="checkbox" id="voiceMode" checked> Voice</label>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label class="theme-toggle" title="Toggle Light/Dark Mode">
+                        <input type="checkbox" id="themeToggle" style="display:none;">
+                        <span id="themeIcon">🌙</span>
+                    </label>
+                    <span id="rateDisplay">Your Rate: 0/0</span>
+                </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <label class="theme-toggle" title="Toggle Light/Dark Mode">
-                    <input type="checkbox" id="themeToggle" style="display:none;">
-                    <span id="themeIcon">🌙</span>
-                </label>
-                <span id="rateDisplay">Your Rate: 0/0</span>
+
+            <div class="plot-controls">
+                <label><input type="checkbox" id="plotMode"> Manual Plotting</label>
+                <span class="help-icon" data-tooltip="레이더 화면에 예상 위치를 직접 마킹해 볼 수 있습니다. 첫 번째 클릭은 내 기체(파란색), 두 번째 클릭은 타겟(빨간색)으로 표시됩니다.">?</span>
             </div>
         </div>
 
@@ -295,6 +377,9 @@
     let isAnimating = false;
     const ANIMATION_DURATION = 300;
 
+    let userMyPos = null;
+    let userTgtPos = null;
+
     let myVoice = null;
 
     function initVoices() {
@@ -335,6 +420,15 @@
             document.body.classList.remove('dark-mode');
             document.getElementById('themeIcon').innerText = '🌙';
         }
+        drawRadar();
+    });
+
+    document.getElementById('plotMode').addEventListener('change', function() {
+        if (!this.checked) {
+            userMyPos = null;
+            userTgtPos = null;
+            drawRadar();
+        }
     });
 
     document.getElementById('btnGenerate').addEventListener('click', generatePosits);
@@ -353,6 +447,31 @@
         }
     });
 
+    canvas.addEventListener('pointerdown', function(event) {
+        const plotMode = document.getElementById('plotMode').checked;
+        if (!plotMode) return;
+
+        const easyMode = document.getElementById('easyMode').checked;
+        if (easyMode || isChecked) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        const x = (event.clientX - rect.left) * scaleX;
+        const y = (event.clientY - rect.top) * scaleY;
+
+        if (!userMyPos) {
+            userMyPos = {x, y};
+        } else if (!userTgtPos) {
+            userTgtPos = {x, y};
+        } else {
+            userMyPos = {x, y};
+            userTgtPos = null;
+        }
+        drawRadar();
+    });
+
     function init() {
         drawRadar();
     }
@@ -362,6 +481,9 @@
         isCorrect = false;
         isChecked = false;
         isCurrentProblemScored = false;
+
+        userMyPos = null;
+        userTgtPos = null;
 
         myData.brg = Math.floor(Math.random() * 361);
         myData.rng = Math.floor(Math.random() * (MAX_RANGE - MIN_RANGE + 1)) + MIN_RANGE;
@@ -566,6 +688,49 @@
         const tgtRad = tgtData.brg * (Math.PI / 180);
         const tgtX = CENTER + (tgtData.rng * Math.sin(tgtRad) * SCALE);
         const tgtY = CENTER - (tgtData.rng * Math.cos(tgtRad) * SCALE);
+
+        if (!easyMode && !isChecked) {
+            if (userMyPos) {
+                ctx.beginPath();
+                ctx.arc(userMyPos.x, userMyPos.y, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = '#3498db';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            if (userTgtPos) {
+                ctx.beginPath();
+                ctx.arc(userTgtPos.x, userTgtPos.y, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = '#e74c3c';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(userMyPos.x, userMyPos.y);
+                ctx.lineTo(userTgtPos.x, userTgtPos.y);
+                ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--dash-line-color').trim();
+                ctx.setLineDash([5, 5]);
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        if (isChecked && userMyPos) {
+            ctx.beginPath();
+            ctx.arc(userMyPos.x, userMyPos.y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(52, 152, 219, 0.4)';
+            ctx.fill();
+        }
+        if (isChecked && userTgtPos) {
+            ctx.beginPath();
+            ctx.arc(userTgtPos.x, userTgtPos.y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(231, 76, 60, 0.4)';
+            ctx.fill();
+        }
 
         if (easyMode || isChecked) {
             ctx.beginPath();
