@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bullseye Training</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2c3e50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #ecf0f1;
+        }
+        .app-container {
+            display: flex;
+            background-color: #34495e;
+            padding: 30px;
+            gap: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            width: 280px;
+            gap: 20px;
+        }
+        .right-panel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            background-color: #ecf0f1;
+            border-radius: 50%;
+            border: 2px solid #95a5a6;
+        }
+        .description {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #bdc3c7;
+            background-color: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .top-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+        }
+        #rateDisplay {
+            font-size: 14px;
+            color: #bdc3c7;
+        }
+        button {
+            padding: 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #3498db;
+            color: white;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        fieldset {
+            border: 1px solid #7f8c8d;
+            padding: 15px;
+            margin: 0;
+            border-radius: 8px;
+        }
+        legend {
+            font-size: 14px;
+            color: #bdc3c7;
+            padding: 0 10px;
+        }
+        .posit-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+        .posit-row:last-child {
+            margin-bottom: 0;
+        }
+        .posit-value {
+            padding: 6px 10px;
+            border: 1px solid #7f8c8d;
+            width: 140px;
+            text-align: center;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            border-radius: 4px;
+        }
+        .blue-bg { background-color: #3498db; color: white; border-color: #2980b9; }
+        .red-bg { background-color: #e74c3c; color: white; border-color: #c0392b; }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+        .input-row input {
+            width: 110px;
+            padding: 6px;
+            border: 1px solid #7f8c8d;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            border-radius: 4px;
+        }
+        #resultBox {
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.3);
+        }
+        .correct { background-color: #2ecc71; color: white; }
+        .incorrect { background-color: #e74c3c; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="left-panel">
+        <div class="description">
+            Description:<br>
+            This tool generates two coordinates. Enter your estimate bearing to the target. This tool will check your answer.
+        </div>
+
+        <div class="top-controls">
+            <div>
+                <label><input type="checkbox" id="easyMode" checked> easy</label>
+                <label style="margin-left: 8px;"><input type="checkbox" id="voiceMode"> voice</label>
+            </div>
+            <span id="rateDisplay">Your Rate: 0/0</span>
+        </div>
+
+        <button id="btnGenerate">GENERATE</button>
+
+        <fieldset>
+            <legend>Posit</legend>
+            <div class="posit-row">
+                <span>Your Posit:</span>
+                <div class="posit-value blue-bg" id="myPosit">---° | -- nm</div>
+            </div>
+            <div class="posit-row">
+                <span>Target Posit:</span>
+                <div class="posit-value red-bg" id="tgtPosit">---° | -- nm</div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Input to target</legend>
+            <div class="input-row">
+                <span>Bearing [°]:</span>
+                <input type="number" id="inputBearing">
+            </div>
+        </fieldset>
+
+        <button id="btnCheck">CHECK</button>
+
+        <div id="resultBox"></div>
+    </div>
+
+    <div class="right-panel">
+        <canvas id="radarCanvas" width="400" height="400"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('radarCanvas');
+    const ctx = canvas.getContext('2d');
+    const MAX_RANGE = 150;
+    const MIN_RANGE = 30; // 거리를 30마일 이상으로 제한하기 위한 변수 추가
+    const CENTER = 200;
+    const RADIUS = 180;
+    const SCALE = RADIUS / MAX_RANGE;
+
+    let myData = { brg: 0, rng: 0 };
+    let tgtData = { brg: 0, rng: 0 };
+    let isCorrect = false;
+    let isChecked = false;
+    let trueBearing = 0;
+
+    let correctAnswers = 0;
+    let totalAttempts = 0;
+    let isCurrentProblemScored = false;
+
+    // --- 목소리 고정 로직 ---
+    let myVoice = null;
+
+    function initVoices() {
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length === 0) return;
+
+        const preferredNames = ['Alex', 'Fred', 'Microsoft David', 'Google US English'];
+
+        for (let name of preferredNames) {
+            const voice = voices.find(v => v.name.includes(name) && v.lang.includes('en-US'));
+            if (voice) {
+                myVoice = voice;
+                return;
+            }
+        }
+
+        if (!myVoice) {
+            myVoice = voices.find(v => v.lang.includes('en-US') && v.name.toLowerCase().includes('male'));
+        }
+
+        if (!myVoice) {
+            myVoice = voices.find(v => v.lang.includes('en-US'));
+        }
+    }
+
+    if ('speechSynthesis' in window) {
+        initVoices();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = initVoices;
+        }
+    }
+    // -------------------------
+
+    document.getElementById('btnGenerate').addEventListener('click', generatePosits);
+    document.getElementById('btnCheck').addEventListener('click', checkAnswer);
+    document.getElementById('easyMode').addEventListener('change', drawRadar);
+
+    document.getElementById('voiceMode').addEventListener('change', function() {
+        updateTargetPositUI();
+    });
+
+    document.getElementById('inputBearing').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            checkAnswer();
+        }
+    });
+
+    function init() {
+        drawRadar();
+    }
+
+    function generatePosits() {
+        isCorrect = false;
+        isChecked = false;
+        isCurrentProblemScored = false;
+
+        // 30 ~ 150 마일 사이의 난수 생성으로 수정
+        myData.brg = Math.floor(Math.random() * 361);
+        myData.rng = Math.floor(Math.random() * (MAX_RANGE - MIN_RANGE + 1)) + MIN_RANGE;
+
+        tgtData.brg = Math.floor(Math.random() * 361);
+        tgtData.rng = Math.floor(Math.random() * (MAX_RANGE - MIN_RANGE + 1)) + MIN_RANGE;
+
+        document.getElementById('myPosit').innerText = `${myData.brg}° | ${myData.rng} nm`;
+
+        updateTargetPositUI();
+
+        if (document.getElementById('voiceMode').checked) {
+            speakTargetPosit(tgtData.brg, tgtData.rng);
+        }
+
+        const inputField = document.getElementById('inputBearing');
+        inputField.value = '';
+        inputField.focus();
+
+        const resultBox = document.getElementById('resultBox');
+        resultBox.style.display = 'none';
+
+        calculateTrueBearing();
+        drawRadar();
+    }
+
+    function updateTargetPositUI() {
+        if (tgtData.rng === 0 && tgtData.brg === 0) return;
+
+        const isVoice = document.getElementById('voiceMode').checked;
+        if (isVoice && !isChecked) {
+            document.getElementById('tgtPosit').innerText = `---° | -- nm`;
+        } else {
+            document.getElementById('tgtPosit').innerText = `${tgtData.brg}° | ${tgtData.rng} nm`;
+        }
+    }
+
+    function formatBearingForSpeech(brg) {
+        return brg.toString().padStart(3, '0').split('').join(' ');
+    }
+
+    function speakTargetPosit(brg, rng) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+
+            const spokenBearing = formatBearingForSpeech(brg);
+            const textToSpeak = `Bullseye ${spokenBearing}, ${rng} miles.`;
+
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = 'en-US';
+            utterance.rate = 1.0;
+
+            if (myVoice) {
+                utterance.voice = myVoice;
+            }
+
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    function calculateTrueBearing() {
+        const myRad = myData.brg * (Math.PI / 180);
+        const myX = myData.rng * Math.sin(myRad);
+        const myY = -myData.rng * Math.cos(myRad);
+
+        const tgtRad = tgtData.brg * (Math.PI / 180);
+        const tgtX = tgtData.rng * Math.sin(tgtRad);
+        const tgtY = -tgtData.rng * Math.cos(tgtRad);
+
+        const dx = tgtX - myX;
+        const dy = tgtY - myY;
+
+        let angleRad = Math.atan2(dx, -dy);
+        let angleDeg = angleRad * (180 / Math.PI);
+
+        if (angleDeg < 0) angleDeg += 360;
+        trueBearing = Math.round(angleDeg);
+    }
+
+    function checkAnswer() {
+        const inputVal = parseInt(document.getElementById('inputBearing').value, 10);
+        if (isNaN(inputVal)) {
+            alert("Bearing 값을 입력해주세요.");
+            return;
+        }
+
+        isChecked = true;
+
+        let diff = Math.abs(inputVal - trueBearing) % 360;
+        let finalDiff = diff > 180 ? 360 - diff : diff;
+
+        const resultBox = document.getElementById('resultBox');
+        resultBox.style.display = 'block';
+
+        document.getElementById('tgtPosit').innerText = `${tgtData.brg}° | ${tgtData.rng} nm`;
+
+        if (finalDiff <= 20) {
+            isCorrect = true;
+            resultBox.innerText = `Good! ${trueBearing}° (±20°)`;
+            resultBox.className = 'correct';
+
+            if (!isCurrentProblemScored) {
+                correctAnswers++;
+                totalAttempts++;
+                isCurrentProblemScored = true;
+            }
+        } else {
+            isCorrect = false;
+            resultBox.innerText = `Incorrect! True Bearing: ${trueBearing}°`;
+            resultBox.className = 'incorrect';
+
+            if (!isCurrentProblemScored) {
+                totalAttempts++;
+                isCurrentProblemScored = true;
+            }
+        }
+
+        document.getElementById('rateDisplay').innerText = `Your Rate: ${correctAnswers}/${totalAttempts}`;
+        drawRadar();
+    }
+
+    function drawBullseyeMarker(x, y) {
+        ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+        ctx.lineWidth = 1;
+        for (let r = 5; r <= 15; r += 5) {
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.moveTo(x - 20, y);
+        ctx.lineTo(x + 20, y);
+        ctx.moveTo(x, y - 20);
+        ctx.lineTo(x, y + 20);
+        ctx.stroke();
+    }
+
+    function drawRadar() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.beginPath();
+        ctx.arc(CENTER, CENTER, RADIUS, 0, 2 * Math.PI);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(CENTER, CENTER - RADIUS);
+        ctx.lineTo(CENTER, CENTER + RADIUS);
+        ctx.moveTo(CENTER - RADIUS, CENTER);
+        ctx.lineTo(CENTER + RADIUS, CENTER);
+        ctx.stroke();
+
+        drawBullseyeMarker(CENTER, CENTER);
+
+        ctx.font = "14px Arial";
+        ctx.fillStyle = "#000";
+        ctx.textAlign = "center";
+        ctx.fillText("N", CENTER, CENTER - RADIUS - 5);
+        ctx.fillText("S", CENTER, CENTER + RADIUS + 15);
+        ctx.textAlign = "left";
+        ctx.fillText("E", CENTER + RADIUS + 5, CENTER + 5);
+        ctx.textAlign = "right";
+        ctx.fillText("W", CENTER - RADIUS - 5, CENTER + 5);
+
+        const easyMode = document.getElementById('easyMode').checked;
+
+        if (easyMode || isChecked) {
+            const myRad = myData.brg * (Math.PI / 180);
+            const myX = CENTER + (myData.rng * Math.sin(myRad) * SCALE);
+            const myY = CENTER - (myData.rng * Math.cos(myRad) * SCALE);
+
+            const tgtRad = tgtData.brg * (Math.PI / 180);
+            const tgtX = CENTER + (tgtData.rng * Math.sin(tgtRad) * SCALE);
+            const tgtY = CENTER - (tgtData.rng * Math.cos(tgtRad) * SCALE);
+
+            if (isChecked) {
+                ctx.beginPath();
+                ctx.moveTo(myX, myY);
+                ctx.lineTo(CENTER, CENTER);
+                ctx.lineTo(tgtX, tgtY);
+                ctx.strokeStyle = '#ff0000';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(myX, myY);
+                ctx.lineTo(tgtX, tgtY);
+                ctx.strokeStyle = '#00cc00';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+            }
+
+            ctx.beginPath();
+            ctx.arc(myX, myY, 4, 0, 2 * Math.PI);
+            ctx.fillStyle = '#3498db';
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(tgtX, tgtY, 4, 0, 2 * Math.PI);
+            ctx.fillStyle = '#e74c3c';
+            ctx.fill();
+        }
+    }
+
+    init();
+</script>
+
+</body>
+</html>
