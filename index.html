@@ -2,60 +2,116 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bullseye Training</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bullseye Trainer</title>
     <style>
+        /* Light & Dark 테마 색상 변수 정의 */
+        :root {
+            --bg-color: #f0f2f5;
+            --panel-bg: #ffffff;
+            --text-color: #2c3e50;
+            --muted-color: #7f8c8d;
+            --border-color: #bdc3c7;
+            --input-bg: #ffffff;
+            --canvas-border: #bdc3c7;
+            --canvas-bg: #fdfdfd;
+            --shadow-color: rgba(0, 0, 0, 0.15);
+        }
+
+        body.dark-mode {
+            --bg-color: #2c3e50;
+            --panel-bg: #34495e;
+            --text-color: #ecf0f1;
+            --muted-color: #bdc3c7;
+            --border-color: #7f8c8d;
+            --input-bg: #2c3e50;
+            --canvas-border: #95a5a6;
+            --canvas-bg: #ecf0f1; /* 다크모드에서도 선이 잘 보이도록 캔버스는 밝게 유지 */
+            --shadow-color: rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #2c3e50;
+            background-color: var(--bg-color);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            color: #ecf0f1;
+            color: var(--text-color);
+            padding: 20px 10px;
+            transition: background-color 0.3s, color 0.3s;
         }
         .app-container {
             display: flex;
-            background-color: #34495e;
+            flex-direction: row;
+            background-color: var(--panel-bg);
             padding: 30px;
             gap: 30px;
             border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 20px var(--shadow-color);
+            max-width: 100%;
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
         .left-panel {
             display: flex;
             flex-direction: column;
             width: 280px;
-            gap: 20px;
+            gap: 15px;
         }
+
+        .title-container {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .title-container h1 {
+            margin: 0;
+            font-size: 26px;
+            color: #3498db;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        .title-container .subtitle {
+            margin-top: 5px;
+            font-size: 13px;
+            color: var(--muted-color);
+            font-style: italic;
+            transition: color 0.3s;
+        }
+
         .right-panel {
             display: flex;
             justify-content: center;
             align-items: center;
         }
         canvas {
-            background-color: #ecf0f1;
+            background-color: var(--canvas-bg);
             border-radius: 50%;
-            border: 2px solid #95a5a6;
-        }
-        .description {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #bdc3c7;
-            background-color: rgba(0,0,0,0.2);
-            padding: 15px;
-            border-radius: 8px;
+            border: 2px solid var(--canvas-border);
+            max-width: 100%;
+            height: auto;
+            transition: background-color 0.3s, border-color 0.3s;
         }
         .top-controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 15px;
+            margin-top: 10px;
         }
         #rateDisplay {
             font-size: 14px;
-            color: #bdc3c7;
+            color: var(--muted-color);
+            transition: color 0.3s;
+        }
+        .theme-toggle {
+            cursor: pointer;
+            user-select: none;
+            font-size: 18px;
+            line-height: 1;
         }
         button {
             padding: 15px;
@@ -66,20 +122,25 @@
             color: white;
             border-radius: 8px;
             transition: background-color 0.2s;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 5px;
         }
         button:hover {
             background-color: #2980b9;
         }
         fieldset {
-            border: 1px solid #7f8c8d;
+            border: 1px solid var(--border-color);
             padding: 15px;
             margin: 0;
             border-radius: 8px;
+            transition: border-color 0.3s;
         }
         legend {
             font-size: 14px;
-            color: #bdc3c7;
+            color: var(--muted-color);
             padding: 0 10px;
+            transition: color 0.3s;
         }
         .posit-row {
             display: flex;
@@ -93,12 +154,13 @@
         }
         .posit-value {
             padding: 6px 10px;
-            border: 1px solid #7f8c8d;
+            border: 1px solid var(--border-color);
             width: 140px;
             text-align: center;
             font-family: 'Courier New', Courier, monospace;
             font-size: 15px;
             border-radius: 4px;
+            transition: border-color 0.3s;
         }
         .blue-bg { background-color: #3498db; color: white; border-color: #2980b9; }
         .red-bg { background-color: #e74c3c; color: white; border-color: #c0392b; }
@@ -107,18 +169,19 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             font-size: 15px;
         }
         .input-row input {
             width: 110px;
             padding: 6px;
-            border: 1px solid #7f8c8d;
-            background-color: #2c3e50;
-            color: #ecf0f1;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
             font-family: 'Courier New', Courier, monospace;
             font-size: 15px;
             border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
         #resultBox {
             padding: 15px;
@@ -127,18 +190,40 @@
             display: none;
             border-radius: 8px;
             border: 1px solid rgba(0,0,0,0.3);
+            margin-top: 5px;
         }
         .correct { background-color: #2ecc71; color: white; }
         .incorrect { background-color: #e74c3c; color: white; }
+
+        @media (max-width: 768px) {
+            body {
+                align-items: flex-start;
+            }
+            .app-container {
+                flex-direction: column;
+                padding: 20px;
+                gap: 20px;
+                width: 100%;
+                max-width: 400px;
+            }
+            .left-panel {
+                width: 100%;
+            }
+            canvas {
+                width: 100%;
+                max-width: 350px;
+            }
+        }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <div class="left-panel">
-        <div class="description">
-            Description:<br>
-            This tool generates two coordinates. Enter your estimate bearing to the target. This tool will check your answer.
+
+        <div class="title-container">
+            <h1>BULLSEYE TRAINER</h1>
+            <div class="subtitle">reproduced by Badger</div>
         </div>
 
         <div class="top-controls">
@@ -146,7 +231,13 @@
                 <label><input type="checkbox" id="easyMode" checked> easy</label>
                 <label style="margin-left: 8px;"><input type="checkbox" id="voiceMode"> voice</label>
             </div>
-            <span id="rateDisplay">Your Rate: 0/0</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label class="theme-toggle" title="Toggle Light/Dark Mode">
+                    <input type="checkbox" id="themeToggle" style="display:none;">
+                    <span id="themeIcon">🌙</span>
+                </label>
+                <span id="rateDisplay">Your Rate: 0/0</span>
+            </div>
         </div>
 
         <button id="btnGenerate">GENERATE</button>
@@ -167,7 +258,7 @@
             <legend>Input to target</legend>
             <div class="input-row">
                 <span>Bearing [°]:</span>
-                <input type="number" id="inputBearing">
+                <input type="number" id="inputBearing" inputmode="numeric" pattern="[0-9]*">
             </div>
         </fieldset>
 
@@ -185,7 +276,7 @@
     const canvas = document.getElementById('radarCanvas');
     const ctx = canvas.getContext('2d');
     const MAX_RANGE = 150;
-    const MIN_RANGE = 30; // 거리를 30마일 이상으로 제한하기 위한 변수 추가
+    const MIN_RANGE = 30;
     const CENTER = 200;
     const RADIUS = 180;
     const SCALE = RADIUS / MAX_RANGE;
@@ -200,7 +291,10 @@
     let totalAttempts = 0;
     let isCurrentProblemScored = false;
 
-    // --- 목소리 고정 로직 ---
+    let animationStartTime = 0;
+    let isAnimating = false;
+    const ANIMATION_DURATION = 300;
+
     let myVoice = null;
 
     function initVoices() {
@@ -232,7 +326,18 @@
             speechSynthesis.onvoiceschanged = initVoices;
         }
     }
-    // -------------------------
+
+    // --- 다크 모드 토글 이벤트 ---
+    document.getElementById('themeToggle').addEventListener('change', function() {
+        if (this.checked) {
+            document.body.classList.add('dark-mode');
+            document.getElementById('themeIcon').innerText = '☀️';
+        } else {
+            document.body.classList.remove('dark-mode');
+            document.getElementById('themeIcon').innerText = '🌙';
+        }
+    });
+    // ----------------------------
 
     document.getElementById('btnGenerate').addEventListener('click', generatePosits);
     document.getElementById('btnCheck').addEventListener('click', checkAnswer);
@@ -245,6 +350,7 @@
     document.getElementById('inputBearing').addEventListener('keydown', function(event) {
         if (event.key === 'Enter') {
             event.preventDefault();
+            this.blur();
             checkAnswer();
         }
     });
@@ -254,11 +360,11 @@
     }
 
     function generatePosits() {
+        isAnimating = false;
         isCorrect = false;
         isChecked = false;
         isCurrentProblemScored = false;
 
-        // 30 ~ 150 마일 사이의 난수 생성으로 수정
         myData.brg = Math.floor(Math.random() * 361);
         myData.rng = Math.floor(Math.random() * (MAX_RANGE - MIN_RANGE + 1)) + MIN_RANGE;
 
@@ -338,6 +444,8 @@
     }
 
     function checkAnswer() {
+        if (isAnimating) return;
+
         const inputVal = parseInt(document.getElementById('inputBearing').value, 10);
         if (isNaN(inputVal)) {
             alert("Bearing 값을 입력해주세요.");
@@ -376,7 +484,31 @@
         }
 
         document.getElementById('rateDisplay').innerText = `Your Rate: ${correctAnswers}/${totalAttempts}`;
-        drawRadar();
+
+        startAnimateRadar();
+    }
+
+    function startAnimateRadar() {
+        isAnimating = true;
+        animationStartTime = performance.now();
+        requestAnimationFrame(animateLoop);
+    }
+
+    function animateLoop(currentTime) {
+        if (!isAnimating) return;
+
+        const elapsedTime = currentTime - animationStartTime;
+        let progress = elapsedTime / ANIMATION_DURATION;
+
+        if (progress > 1) progress = 1;
+
+        drawRadar(progress);
+
+        if (progress < 1) {
+            requestAnimationFrame(animateLoop);
+        } else {
+            isAnimating = false;
+        }
     }
 
     function drawBullseyeMarker(x, y) {
@@ -395,7 +527,11 @@
         ctx.stroke();
     }
 
-    function drawRadar() {
+    function lerp(start, end, amt) {
+        return start + (end - start) * amt;
+    }
+
+    function drawRadar(progress = 1) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         ctx.beginPath();
@@ -425,32 +561,15 @@
 
         const easyMode = document.getElementById('easyMode').checked;
 
+        const myRad = myData.brg * (Math.PI / 180);
+        const myX = CENTER + (myData.rng * Math.sin(myRad) * SCALE);
+        const myY = CENTER - (myData.rng * Math.cos(myRad) * SCALE);
+
+        const tgtRad = tgtData.brg * (Math.PI / 180);
+        const tgtX = CENTER + (tgtData.rng * Math.sin(tgtRad) * SCALE);
+        const tgtY = CENTER - (tgtData.rng * Math.cos(tgtRad) * SCALE);
+
         if (easyMode || isChecked) {
-            const myRad = myData.brg * (Math.PI / 180);
-            const myX = CENTER + (myData.rng * Math.sin(myRad) * SCALE);
-            const myY = CENTER - (myData.rng * Math.cos(myRad) * SCALE);
-
-            const tgtRad = tgtData.brg * (Math.PI / 180);
-            const tgtX = CENTER + (tgtData.rng * Math.sin(tgtRad) * SCALE);
-            const tgtY = CENTER - (tgtData.rng * Math.cos(tgtRad) * SCALE);
-
-            if (isChecked) {
-                ctx.beginPath();
-                ctx.moveTo(myX, myY);
-                ctx.lineTo(CENTER, CENTER);
-                ctx.lineTo(tgtX, tgtY);
-                ctx.strokeStyle = '#ff0000';
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(myX, myY);
-                ctx.lineTo(tgtX, tgtY);
-                ctx.strokeStyle = '#00cc00';
-                ctx.lineWidth = 2.5;
-                ctx.stroke();
-            }
-
             ctx.beginPath();
             ctx.arc(myX, myY, 4, 0, 2 * Math.PI);
             ctx.fillStyle = '#3498db';
@@ -460,6 +579,30 @@
             ctx.arc(tgtX, tgtY, 4, 0, 2 * Math.PI);
             ctx.fillStyle = '#e74c3c';
             ctx.fill();
+        }
+
+        if (isChecked) {
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(myX, myY);
+
+            if (progress <= 0.5) {
+                const p1 = progress * 2;
+                ctx.lineTo(lerp(myX, CENTER, p1), lerp(myY, CENTER, p1));
+            } else {
+                ctx.lineTo(CENTER, CENTER);
+                const p2 = (progress - 0.5) * 2;
+                ctx.lineTo(lerp(CENTER, tgtX, p2), lerp(CENTER, tgtY, p2));
+            }
+            ctx.stroke();
+
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(myX, myY);
+            ctx.lineTo(lerp(myX, tgtX, progress), lerp(myY, tgtY, progress));
+            ctx.stroke();
         }
     }
 
