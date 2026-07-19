@@ -196,10 +196,38 @@
 
         .right-panel {
             grid-area: radar;
-            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+        .radar-stage {
+            position: relative;
+            width: 400px;
+            max-width: 100%;
+        }
+        .radar-coordinate-toggle {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            z-index: 4;
+            box-sizing: border-box;
+            width: auto;
+            min-width: 176px;
+            height: 25px;
+            margin: 0;
+            padding: 0 8px;
+            transform: translateX(-50%);
+            border: 1px solid #f1c40f;
+            border-radius: 2px;
+            background: rgba(10, 24, 38, 0.86);
+            color: #fff;
+            font: bold 12px 'Segoe UI', Arial, sans-serif;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        .radar-coordinate-toggle[aria-pressed="false"] {
+            border-color: var(--muted-color);
+            color: var(--muted-color);
         }
         .call-countdown {
             position: absolute;
@@ -232,11 +260,12 @@
             100% { opacity: 0.35; transform: translate(-50%, -50%) scale(1.12); }
         }
         canvas {
+            display: block;
+            width: 100%;
             background-color: var(--canvas-bg);
             border-radius: 8px;
             border: none;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
-            max-width: 100%;
             height: auto;
             cursor: crosshair;
             touch-action: pan-y;
@@ -765,7 +794,7 @@
             .data-table th,
             .data-table td { padding: 4px 2px; }
             #resultBox { padding: 4px; }
-            canvas {
+            .radar-stage {
                 width: min(100%, 42vh);
                 max-width: 380px;
             }
@@ -775,7 +804,7 @@
             .title-container h1 { font-size: 18px; }
             .title-container .subtitle { font-size: 11px; }
             .badger-credit { font-size: 12px; }
-            canvas { width: min(100%, 34vh); }
+            .radar-stage { width: min(100%, 34vh); }
         }
     </style>
 </head>
@@ -933,8 +962,11 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
     </div>
 
     <div class="right-panel">
-        <canvas id="radarCanvas" width="400" height="400"></canvas>
-        <div id="callCountdown" class="call-countdown" aria-live="assertive" hidden></div>
+        <div class="radar-stage">
+            <button type="button" id="radarCoordinateToggle" class="radar-coordinate-toggle" aria-pressed="true" aria-label="Turn Bullseye coordinate view off">BULLS ---° / -- nm</button>
+            <canvas id="radarCanvas" width="400" height="400"></canvas>
+            <div id="callCountdown" class="call-countdown" aria-live="assertive" hidden></div>
+        </div>
     </div>
 
     <fieldset id="answerFieldset">
@@ -971,6 +1003,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
 <script>
     const canvas = document.getElementById('radarCanvas');
     const ctx = canvas.getContext('2d');
+    const radarCoordinateToggle = document.getElementById('radarCoordinateToggle');
 
     const CENTER = 200;
     const RADIUS = 170;
@@ -1008,6 +1041,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
     let userMyPos = null;
     let userTgtPos = null;
     let radarPointerPos = null;
+    let isRadarCoordinateViewOn = true;
     let activeRadarPointerId = null;
     let ignoreCanvasClickUntil = 0;
     let radarPointerHideTimeout = null;
@@ -1290,6 +1324,37 @@ For one group, enter the bearing from ownship to target and the target altitude,
     function canPlacePicturePoint() {
         return currentGroups > 1 && groupsData.length > 0 && !isChecked && !isTargetCallPending;
     }
+
+    function radarCoordinateReadout() {
+        if (!radarPointerPos) return 'BULLS ---° / -- nm';
+
+        const posit = xyToPosit(
+            (radarPointerPos.x - CENTER) / SCALE,
+            (radarPointerPos.y - CENTER) / SCALE
+        );
+        const displayBearing = posit.brg === 0 ? 360 : posit.brg;
+        const nextPointLabel = currentGroups > 1 && userClicks.length < groupsData.length + 1
+            ? `${userClicks.length === 0 ? 'OWN' : `G${userClicks.length}`} · `
+            : '';
+        return `${nextPointLabel}BULLS ${displayBearing.toString().padStart(3, '0')}° / ${posit.rng} nm`;
+    }
+
+    function updateRadarCoordinateToggle() {
+        radarCoordinateToggle.setAttribute('aria-pressed', String(isRadarCoordinateViewOn));
+        radarCoordinateToggle.setAttribute(
+            'aria-label',
+            isRadarCoordinateViewOn ? 'Turn Bullseye coordinate view off' : 'Turn Bullseye coordinate view on'
+        );
+        radarCoordinateToggle.textContent = isRadarCoordinateViewOn
+            ? radarCoordinateReadout()
+            : 'BULLS COORDS OFF';
+    }
+
+    radarCoordinateToggle.addEventListener('click', function() {
+        isRadarCoordinateViewOn = !isRadarCoordinateViewOn;
+        radarPointerPos = null;
+        drawRadar();
+    });
 
     function syncRadarPointerMode() {
         canvas.classList.toggle('picture-placement-active', canPlacePicturePoint());
@@ -2406,6 +2471,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
 
     function drawRadar(progress = 1) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        updateRadarCoordinateToggle();
 
         const showBearingLines = document.getElementById('showBraMode').checked;
 
@@ -2619,17 +2685,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
     }
 
     function drawRadarPointerOverlay() {
-        if (!radarPointerPos) return;
-
-        const posit = xyToPosit(
-            (radarPointerPos.x - CENTER) / SCALE,
-            (radarPointerPos.y - CENTER) / SCALE
-        );
-        const displayBearing = posit.brg === 0 ? 360 : posit.brg;
-        const nextPointLabel = currentGroups > 1 && userClicks.length < groupsData.length + 1
-            ? `${userClicks.length === 0 ? 'OWN' : `G${userClicks.length}`} · `
-            : '';
-        const readout = `${nextPointLabel}BULLS ${displayBearing.toString().padStart(3, '0')}° / ${posit.rng} nm`;
+        if (!isRadarCoordinateViewOn || !radarPointerPos) return;
 
         ctx.save();
         ctx.strokeStyle = '#f1c40f';
@@ -2641,22 +2697,6 @@ For one group, enter the bearing from ownship to target and the target altitude,
         ctx.moveTo(radarPointerPos.x, radarPointerPos.y - 12);
         ctx.lineTo(radarPointerPos.x, radarPointerPos.y + 12);
         ctx.stroke();
-        ctx.setLineDash([]);
-
-        ctx.font = "bold 12px 'Segoe UI', Arial, sans-serif";
-        const paddingX = 8;
-        const labelWidth = ctx.measureText(readout).width + paddingX * 2;
-        const labelHeight = 25;
-        const labelX = CENTER - labelWidth / 2;
-        const labelY = 9;
-        ctx.fillStyle = 'rgba(10, 24, 38, 0.86)';
-        ctx.fillRect(labelX, labelY, labelWidth, labelHeight);
-        ctx.strokeStyle = '#f1c40f';
-        ctx.strokeRect(labelX, labelY, labelWidth, labelHeight);
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(readout, CENTER, labelY + labelHeight / 2);
         ctx.restore();
     }
 
