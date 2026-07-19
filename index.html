@@ -826,9 +826,9 @@ For single-group practice, shows the actual ownship and target positions on the 
             </div>
             <div class="plot-controls">
                 <label><input type="checkbox" id="showBraMode" checked> Show Bearing Lines</label>
-                <span class="help-icon" data-tooltip="Bullseye에서 뻗는 방위선과 방위각 숫자를 표시하거나 숨깁니다. 이 옵션을 꺼도 Range 링과 50nm·100nm 거리 숫자는 항상 표시됩니다.
+                <span class="help-icon" data-tooltip="Bullseye에서 뻗는 추가 방위선과 방위각 숫자를 표시하거나 숨깁니다. 동서·남북 십자 실선과 빨간색 50nm·100nm Range 링은 항상 표시됩니다.
 
-Shows or hides bearing lines and bearing numbers radiating from Bullseye. Range rings and the 50nm and 100nm range numbers remain visible when this option is off.">?</span>
+Shows or hides additional bearing lines and bearing numbers radiating from Bullseye. The east-west and north-south cross lines and the red 50nm and 100nm range rings are always visible.">?</span>
             </div>
             <div class="plot-controls">
                 <label><input type="checkbox" id="plotMode"> Manual Plotting</label>
@@ -2315,26 +2315,34 @@ For one group, enter the bearing from ownship to target and the target altitude,
 
         const showBearingLines = document.getElementById('showBraMode').checked;
 
-        for (let rng = 10; rng <= MAX_RANGE; rng += 10) {
-            if (rng === MAX_RANGE) continue;
+        [50, 100].forEach(rng => {
             ctx.beginPath();
             ctx.arc(CENTER, CENTER, rng * SCALE, 0, 2 * Math.PI);
-
-            if (rng === 50 || rng === 100) {
-                ctx.strokeStyle = themeColors.highlightRange;
-                ctx.setLineDash([]);
-                ctx.lineWidth = 1;
-            } else {
-                ctx.strokeStyle = themeColors.gridLight;
-                ctx.setLineDash([4, 4]);
-                ctx.lineWidth = 1;
-            }
+            ctx.strokeStyle = themeColors.highlightRange;
+            ctx.setLineDash([]);
+            ctx.lineWidth = 1;
             ctx.stroke();
-        }
+        });
+
+        const cardinalBearings = [0, 90, 180, 270];
+        cardinalBearings.forEach(deg => {
+            const rad = deg * (Math.PI / 180);
+            const endX = CENTER + RADIUS * Math.sin(rad);
+            const endY = CENTER - RADIUS * Math.cos(rad);
+
+            ctx.beginPath();
+            ctx.moveTo(CENTER, CENTER);
+            ctx.lineTo(endX, endY);
+            ctx.strokeStyle = themeColors.gridDark;
+            ctx.setLineDash([]);
+            ctx.stroke();
+        });
 
         if (showBearingLines) {
             const specialBearings = [0, 45, 90, 135, 180, 225, 270, 315];
             for (let deg = 0; deg < 360; deg += 15) {
+                if (cardinalBearings.includes(deg)) continue;
+
                 const rad = deg * (Math.PI / 180);
                 const endX = CENTER + RADIUS * Math.sin(rad);
                 const endY = CENTER - RADIUS * Math.cos(rad);
