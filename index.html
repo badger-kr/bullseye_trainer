@@ -77,7 +77,8 @@
             grid-template-areas:
                 "main radar"
                 "answer radar"
-                "result radar";
+                "result radar"
+                "footer footer";
             background-color: var(--panel-bg);
             padding: 38px 24px 24px;
             column-gap: 20px;
@@ -238,7 +239,7 @@
             max-width: 100%;
             height: auto;
             cursor: crosshair;
-            touch-action: none;
+            touch-action: pan-y;
             transition: background-color 0.3s;
         }
         .controls-group {
@@ -579,6 +580,18 @@
             margin-top: 0;
             background-color: var(--panel-bg);
         }
+        .app-footer {
+            grid-area: footer;
+            padding-top: 3px;
+            color: var(--muted-color);
+            font-size: 11px;
+            text-align: center;
+        }
+        .app-footer a {
+            color: inherit;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
         .result-table {
             table-layout: auto;
             font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -714,7 +727,9 @@
                     "main"
                     "radar"
                     "answer"
-                    "result";
+                    "result"
+                    "footer";
+                overflow: visible;
                 padding: 30px 8px 8px;
                 gap: 7px;
                 width: 100%;
@@ -724,6 +739,11 @@
             .left-panel {
                 width: 100%;
                 gap: 6px;
+            }
+            body {
+                min-height: 100dvh;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
             .title-container h1 { font-size: 21px; }
             .title-container .subtitle { margin-top: 1px; }
@@ -935,6 +955,10 @@ For one group, enter the bearing from ownship to target and the target altitude,
     </fieldset>
 
     <div id="resultBox"></div>
+
+    <footer class="app-footer">
+        © 2026 Bullseye Trainer by <a href="mailto:blee.kaf001@gmail.com" aria-label="Email Badger" title="Email Badger">Badger</a> 🇰🇷
+    </footer>
 </div>
 
 <div id="helpTooltip" class="help-tooltip-popup" role="tooltip" hidden></div>
@@ -1035,6 +1059,20 @@ For one group, enter the bearing from ownship to target and the target altitude,
         myVoice = preferred.sort((a, b) => voiceQualityScore(b) - voiceQualityScore(a))[0] || null;
     }
 
+    function primeSpeechSynthesis() {
+        if (!('speechSynthesis' in window) || !document.getElementById('voiceMode').checked) return;
+
+        try {
+            const primer = new SpeechSynthesisUtterance('.');
+            primer.lang = 'en-US';
+            primer.volume = 0;
+            window.speechSynthesis.resume();
+            window.speechSynthesis.speak(primer);
+        } catch (error) {
+            console.warn('Speech synthesis preparation failed:', error);
+        }
+    }
+
     if ('speechSynthesis' in window) {
         initVoices();
         if (speechSynthesis.onvoiceschanged !== undefined) {
@@ -1091,6 +1129,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
     settingsPanel.addEventListener('scroll', hideSettingsHelp);
     window.addEventListener('scroll', hideSettingsHelp);
     window.addEventListener('resize', hideSettingsHelp);
+    window.addEventListener('resize', alignRadarWithGenerateButtons);
 
     function setSettingsOpen(isOpen) {
         settingsPanel.hidden = !isOpen;
@@ -1200,6 +1239,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         btn.style.transform = 'scale(0.97)';
         setTimeout(() => { btn.style.transform = 'scale(1)'; }, 100);
         generatePosits();
+        if (isTargetCallPending) primeSpeechSynthesis();
     });
 
     document.getElementById('btnCheck').addEventListener('click', checkAnswer);
@@ -1228,7 +1268,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         });
     });
 
-    canvas.addEventListener('pointerdown', function(event) {
+    canvas.addEventListener('click', function(event) {
         if (isTargetCallPending) return;
 
         const rect = canvas.getBoundingClientRect();
@@ -1277,8 +1317,21 @@ For one group, enter the bearing from ownship to target and the target altitude,
         updateTargetPositUI();
         updateSayAgainState();
         updateThemeColors();
+        alignRadarWithGenerateButtons();
         drawRadar();
         saveSettings();
+    }
+
+    function alignRadarWithGenerateButtons() {
+        const radarPanel = document.querySelector('.right-panel');
+        if (window.innerWidth <= 900) {
+            radarPanel.style.marginTop = '0';
+            return;
+        }
+
+        const leftPanelTop = document.querySelector('.left-panel').getBoundingClientRect().top;
+        const generateTop = document.getElementById('btnGenerate').getBoundingClientRect().top;
+        radarPanel.style.marginTop = `${Math.max(0, Math.round(generateTop - leftPanelTop))}px`;
     }
 
     function generatePosits() {
