@@ -242,6 +242,9 @@
             touch-action: pan-y;
             transition: background-color 0.3s;
         }
+        canvas.picture-placement-active {
+            touch-action: none;
+        }
         .controls-group {
             display: flex;
             flex-direction: column;
@@ -812,7 +815,9 @@ Adds each group's track to the voice call. Choose HOT, FLANK, BEAM, or COLD base
                 <label><input type="radio" name="groups" value="3"> 3</label>
                 <span class="help-icon" data-tooltip="1은 단일 타겟 문제입니다. 2 또는 3을 선택하면 picture 콜이 나오며, 동심원에 내 기체를 먼저 찍고 불러준 순서대로 각 그룹을 찍습니다. 그룹 위치의 허용 반경은 15nm입니다.
 
-Choose 1 for a single target. With 2 or 3 groups, plot ownship first and then each group in call order. Group-position tolerance is 15nm.">?</span>
+데스크톱에서는 마우스 위치의 Bullseye 좌표를 확인하고 클릭합니다. 모바일에서는 누른 채 위치를 조정하고 손을 떼어 확정합니다.
+
+Choose 1 for a single target. With 2 or 3 groups, plot ownship first and then each group in call order. Group-position tolerance is 15nm. On desktop, check the Bullseye readout and click. On mobile, press, drag to adjust, and release to place.">?</span>
             </div>
         </fieldset>
 
@@ -1002,6 +1007,10 @@ For one group, enter the bearing from ownship to target and the target altitude,
 
     let userMyPos = null;
     let userTgtPos = null;
+    let radarPointerPos = null;
+    let activeRadarPointerId = null;
+    let ignoreCanvasClickUntil = 0;
+    let radarPointerHideTimeout = null;
     let myVoice = null;
     let speechSequenceToken = 0;
 
@@ -1268,15 +1277,94 @@ For one group, enter the bearing from ownship to target and the target altitude,
         });
     });
 
-    canvas.addEventListener('click', function(event) {
-        if (isTargetCallPending) return;
-
+    function canvasPointFromEvent(event) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
+        return {
+            x: (event.clientX - rect.left) * scaleX,
+            y: (event.clientY - rect.top) * scaleY
+        };
+    }
 
-        const x = (event.clientX - rect.left) * scaleX;
-        const y = (event.clientY - rect.top) * scaleY;
+    function canPlacePicturePoint() {
+        return currentGroups > 1 && groupsData.length > 0 && !isChecked && !isTargetCallPending;
+    }
+
+    function syncRadarPointerMode() {
+        canvas.classList.toggle('picture-placement-active', canPlacePicturePoint());
+    }
+
+    function scheduleRadarPointerHide() {
+        clearTimeout(radarPointerHideTimeout);
+        radarPointerHideTimeout = setTimeout(() => {
+            radarPointerPos = null;
+            drawRadar();
+        }, 1400);
+    }
+
+    canvas.addEventListener('pointerdown', function(event) {
+        if (event.pointerType === 'mouse') return;
+
+        clearTimeout(radarPointerHideTimeout);
+        radarPointerPos = canvasPointFromEvent(event);
+
+        if (canPlacePicturePoint()) {
+            activeRadarPointerId = event.pointerId;
+            canvas.setPointerCapture(event.pointerId);
+            event.preventDefault();
+        }
+        drawRadar();
+    });
+
+    canvas.addEventListener('pointermove', function(event) {
+        if (event.pointerType === 'mouse') {
+            radarPointerPos = canvasPointFromEvent(event);
+            drawRadar();
+            return;
+        }
+        if (event.pointerId !== activeRadarPointerId) return;
+
+        radarPointerPos = canvasPointFromEvent(event);
+        event.preventDefault();
+        drawRadar();
+    });
+
+    canvas.addEventListener('pointerup', function(event) {
+        if (event.pointerType === 'mouse') return;
+
+        if (event.pointerId === activeRadarPointerId) {
+            const point = canvasPointFromEvent(event);
+            radarPointerPos = point;
+            activeRadarPointerId = null;
+            if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+            if (canPlacePicturePoint() && userClicks.length < groupsData.length + 1) {
+                userClicks.push(point);
+            }
+            ignoreCanvasClickUntil = performance.now() + 700;
+            event.preventDefault();
+            drawRadar();
+        }
+        scheduleRadarPointerHide();
+    });
+
+    canvas.addEventListener('pointercancel', function(event) {
+        if (event.pointerId !== activeRadarPointerId) return;
+        activeRadarPointerId = null;
+        radarPointerPos = null;
+        drawRadar();
+    });
+
+    canvas.addEventListener('pointerleave', function(event) {
+        if (event.pointerType !== 'mouse') return;
+        radarPointerPos = null;
+        drawRadar();
+    });
+
+    canvas.addEventListener('click', function(event) {
+        if (performance.now() < ignoreCanvasClickUntil || isTargetCallPending) return;
+
+        const {x, y} = canvasPointFromEvent(event);
 
         // picture 모드: 첫 클릭 = ownship, 이후 콜 순서대로 그룹. 초과 시 처음부터 다시.
         if (currentGroups > 1) {
@@ -1318,6 +1406,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         updateSayAgainState();
         updateThemeColors();
         alignRadarWithGenerateButtons();
+        syncRadarPointerMode();
         drawRadar();
         saveSettings();
     }
@@ -1353,6 +1442,9 @@ For one group, enter the bearing from ownship to target and the target altitude,
             userMyPos = null;
             userTgtPos = null;
             userClicks = [];
+            radarPointerPos = null;
+            activeRadarPointerId = null;
+            clearTimeout(radarPointerHideTimeout);
             itemResults = [];
 
             currentGroups = getGroupsSetting();
@@ -1381,6 +1473,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
                 groupsData = groups;
                 altQuestionIdx = Math.floor(Math.random() * groupsData.length);
             }
+            syncRadarPointerMode();
 
             const myPositEl = document.getElementById('myPosit');
             myPositEl.innerText = `${myData.brg}° | ${myData.rng} nm`;
@@ -2159,6 +2252,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
 
         isChecked = true;
         isCorrect = itemResults.every(r => r.ok);
+        syncRadarPointerMode();
 
         // 항목 단위 집계 (같은 문제 재제출 시 이중 집계 금지)
         if (!isCurrentProblemScored) {
@@ -2426,6 +2520,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         // picture(Groups>=2) 모드는 별도 오버레이로 그린다
         if (currentGroups > 1) {
             drawPictureOverlay();
+            drawRadarPointerOverlay();
             return;
         }
 
@@ -2519,6 +2614,50 @@ For one group, enter the bearing from ownship to target and the target altitude,
 
             if (problemAspectOn) drawTrackArrow(tgtX, tgtY, tgtData.hdg);
         }
+
+        drawRadarPointerOverlay();
+    }
+
+    function drawRadarPointerOverlay() {
+        if (!radarPointerPos) return;
+
+        const posit = xyToPosit(
+            (radarPointerPos.x - CENTER) / SCALE,
+            (radarPointerPos.y - CENTER) / SCALE
+        );
+        const displayBearing = posit.brg === 0 ? 360 : posit.brg;
+        const nextPointLabel = currentGroups > 1 && userClicks.length < groupsData.length + 1
+            ? `${userClicks.length === 0 ? 'OWN' : `G${userClicks.length}`} · `
+            : '';
+        const readout = `${nextPointLabel}BULLS ${displayBearing.toString().padStart(3, '0')}° / ${posit.rng} nm`;
+
+        ctx.save();
+        ctx.strokeStyle = '#f1c40f';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(radarPointerPos.x - 12, radarPointerPos.y);
+        ctx.lineTo(radarPointerPos.x + 12, radarPointerPos.y);
+        ctx.moveTo(radarPointerPos.x, radarPointerPos.y - 12);
+        ctx.lineTo(radarPointerPos.x, radarPointerPos.y + 12);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.font = "bold 12px 'Segoe UI', Arial, sans-serif";
+        const paddingX = 8;
+        const labelWidth = ctx.measureText(readout).width + paddingX * 2;
+        const labelHeight = 25;
+        const labelX = CENTER - labelWidth / 2;
+        const labelY = 9;
+        ctx.fillStyle = 'rgba(10, 24, 38, 0.86)';
+        ctx.fillRect(labelX, labelY, labelWidth, labelHeight);
+        ctx.strokeStyle = '#f1c40f';
+        ctx.strokeRect(labelX, labelY, labelWidth, labelHeight);
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(readout, CENTER, labelY + labelHeight / 2);
+        ctx.restore();
     }
 
     // 화살표 꼬리를 target 마커의 진행 방향 쪽 바깥 가장자리에서 시작
