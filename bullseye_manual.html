@@ -1,0 +1,300 @@
+<!-- Bullseye Trainer의 한영 사용설명서를 제공하는 독립 페이지 -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bullseye Trainer User Guide</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #eef2f5;
+            --panel: #ffffff;
+            --text: #263746;
+            --muted: #667784;
+            --accent: #2478ad;
+            --border: #c8d2d9;
+            --callout: #e8f4fb;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #17232c;
+                --panel: #243541;
+                --text: #edf4f7;
+                --muted: #aebdc6;
+                --accent: #64b5e8;
+                --border: #506572;
+                --callout: #1d4459;
+            }
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", system-ui, sans-serif;
+            line-height: 1.65;
+        }
+        main {
+            width: min(860px, calc(100% - 24px));
+            margin: 24px auto;
+            padding: 28px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--panel);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        }
+        header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        h1 { margin: 0; color: var(--accent); font-size: 28px; }
+        h2 { margin: 28px 0 8px; color: var(--accent); font-size: 20px; }
+        h3 { margin: 18px 0 6px; font-size: 16px; }
+        p, ul, ol { margin-top: 6px; }
+        li + li { margin-top: 5px; }
+        .subtitle { margin: 2px 0 0; color: var(--muted); }
+        .language-switcher {
+            display: inline-flex;
+            flex: 0 0 auto;
+            gap: 6px;
+            padding: 4px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+        }
+        .language-switcher button {
+            padding: 7px 12px;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .language-switcher button[aria-pressed="true"] {
+            background: var(--accent);
+            color: #fff;
+        }
+        .callout {
+            margin: 18px 0;
+            padding: 12px 15px;
+            border-left: 4px solid var(--accent);
+            border-radius: 5px;
+            background: var(--callout);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 9px;
+            border: 1px solid var(--border);
+            text-align: left;
+            vertical-align: top;
+        }
+        th { background: color-mix(in srgb, var(--accent) 12%, var(--panel)); }
+        code {
+            padding: 2px 5px;
+            border-radius: 4px;
+            background: color-mix(in srgb, var(--muted) 18%, transparent);
+        }
+        [hidden] { display: none !important; }
+        @media (max-width: 600px) {
+            main { margin: 0; width: 100%; padding: 18px; border-radius: 0; }
+            header { flex-direction: column; }
+            h1 { font-size: 24px; }
+            table { font-size: 12px; }
+            th, td { padding: 6px; }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <header>
+        <div>
+            <h1>Bullseye Trainer</h1>
+            <p class="subtitle">User Guide · 사용설명서</p>
+        </div>
+        <div class="language-switcher" aria-label="Language selection">
+            <button type="button" data-language="ko" aria-pressed="true">한국어</button>
+            <button type="button" data-language="en" aria-pressed="false">English</button>
+        </div>
+    </header>
+
+    <article data-guide-language="ko">
+        <div class="callout">Bullseye 콜을 듣고 타겟의 위치, 고도, 움직임을 빠르게 파악하는 연습용 앱입니다. 단일 타겟부터 3개 그룹 picture까지 단계적으로 훈련할 수 있습니다.</div>
+
+        <h2>가장 빠른 시작 방법</h2>
+        <ol>
+            <li>오른쪽 위 톱니바퀴를 눌러 <strong>Groups</strong>와 원하는 훈련 옵션을 고릅니다.</li>
+            <li><strong>GENERATE</strong>를 누르면 Own Bullseye가 먼저 나타나고 반짝입니다.</li>
+            <li>Lead Time 동안 Own Bullseye를 확인합니다. 기본값은 3초이며 화면에는 <code>3 → 2 → 1</code>이 표시됩니다.</li>
+            <li>카운트다운이 끝나면 Target 콜을 듣고 답을 입력하거나 동심원에 위치를 표시합니다.</li>
+            <li><strong>SUBMIT</strong>을 눌러 내 답과 정답을 비교합니다.</li>
+        </ol>
+
+        <h2>문제가 나오는 순서</h2>
+        <p>Generate를 누르면 먼저 파란색 <strong>Own Bullseye</strong>가 갱신됩니다. Lead Time이 켜져 있으면 설정한 시간만큼 기다린 뒤 Target 정보와 음성 콜이 나옵니다. 기다릴 필요가 없다면 Lead Time 체크를 끄면 됩니다.</p>
+        <p>Voice가 켜져 있을 때는 제출 전까지 Target 표의 정답 수치가 숨겨집니다. Voice를 끄면 Lead Time이 끝난 뒤 표에서 Formation, Position, Bullseye, Altitude, Track을 직접 읽을 수 있습니다.</p>
+
+        <h2>Groups 1 답하는 방법</h2>
+        <ul>
+            <li><strong>Bearing</strong>에는 내 기체에서 타겟으로 향하는 방위를 입력합니다. 허용 오차는 ±20°입니다.</li>
+            <li><strong>Altitude</strong>에는 천 피트 단위의 숫자만 입력합니다. 예를 들어 15,000ft는 <code>15</code>입니다.</li>
+            <li><strong>Answer Range</strong>를 켜면 내 기체와 타겟 사이의 거리도 입력합니다. 허용 오차는 ±10nm입니다.</li>
+            <li><strong>Aspect</strong>를 켜면 타겟의 움직임을 HOT, FLANK, BEAM, COLD 중에서 고릅니다.</li>
+            <li><strong>Manual Plotting</strong>을 켜면 계산한 위치를 동심원에 표시할 수 있습니다. 첫 클릭은 내 기체, 두 번째 클릭은 타겟입니다.</li>
+        </ul>
+        <p>Manual Plotting, Answer Range, Easy는 Groups 1에서만 사용할 수 있습니다.</p>
+
+        <h2>Groups 2·3 답하는 방법</h2>
+        <ol>
+            <li>동심원에서 내 기체 위치를 먼저 클릭합니다.</li>
+            <li>콜에서 불러준 순서대로 각 그룹의 위치를 클릭합니다. 빨간 원 안의 1, 2, 3이 콜 순서를 나타냅니다.</li>
+            <li>Aspect가 켜져 있으면 각 그룹의 HOT, FLANK, BEAM, COLD를 선택합니다.</li>
+            <li>질문에 지정된 그룹의 고도를 천 피트 단위로 입력합니다.</li>
+        </ol>
+        <p>그룹 위치는 실제 위치에서 15nm 안에 찍으면 정답입니다. Formation과 W.LD, TR, E.LD 같은 Position 표기를 함께 보면 어떤 그룹을 답하는지 쉽게 구분할 수 있습니다.</p>
+
+        <h2>정답 화면 읽는 방법</h2>
+        <ul>
+            <li>초록색 원은 정답이고 빨간색 X는 오답입니다.</li>
+            <li>틀린 항목에는 <strong>Your answer</strong>와 <strong>Correct answer</strong>가 함께 표시됩니다.</li>
+            <li>다중 그룹 결과는 콜 순서와 같은 번호로 묶이며 Position, Aspect, 질문받은 Altitude 순서로 표시됩니다.</li>
+            <li>위치 정답은 표의 숫자 대신 동심원에서 비교합니다. 점선 원은 15nm 허용 범위를 보여줍니다.</li>
+            <li>Aspect 문제의 정답을 공개하면 각 타겟 마커의 바깥쪽에서 시작하는 화살표가 실제 track 방향을 보여줍니다.</li>
+        </ul>
+
+        <h2>설정과 보조 기능</h2>
+        <table>
+            <thead><tr><th>기능</th><th>설명</th></tr></thead>
+            <tbody>
+                <tr><td>Groups</td><td>1은 단일 타겟, 2와 3은 다중 그룹 picture 문제입니다.</td></tr>
+                <tr><td>Answer Range</td><td>Groups 1에서 타겟까지의 거리도 답하게 합니다.</td></tr>
+                <tr><td>Aspect</td><td>음성 콜에 track을 추가하고 각 그룹의 움직임을 답하게 합니다.</td></tr>
+                <tr><td>Easy</td><td>Groups 1에서 제출 전에도 실제 Ownship과 Target 위치를 보여줍니다.</td></tr>
+                <tr><td>Show BRA</td><td>동심원의 방위선과 거리 눈금을 켜거나 끕니다.</td></tr>
+                <tr><td>Manual Plotting</td><td>Groups 1에서 계산한 Ownship과 Target 위치를 직접 찍게 합니다.</td></tr>
+                <tr><td>Voice</td><td>영어 음성 콜을 켜거나 끕니다.</td></tr>
+                <tr><td>Voice gender</td><td>Male 또는 Female 음성을 우선 선택합니다. 기본값은 Female입니다.</td></tr>
+                <tr><td>Voice speed</td><td>음성 속도를 조절합니다. 현재 1.0×는 이전 버전 0.7×와 같은 실제 속도입니다.</td></tr>
+                <tr><td>Dark mode</td><td>밝은 화면과 어두운 화면을 전환합니다.</td></tr>
+                <tr><td>Lead Time</td><td>Own Bullseye 확인 시간을 정합니다. 기본값은 켜진 상태의 3초이며 1~30초로 바꿀 수 있습니다.</td></tr>
+                <tr><td>Fix Own Bullseye</td><td>다음 문제에서도 현재 Own Bullseye 위치를 유지합니다.</td></tr>
+                <tr><td>Auto refresh</td><td>정답 제출 후 설정한 시간이 지나면 새 문제를 자동으로 생성합니다.</td></tr>
+            </tbody>
+        </table>
+
+        <h2>버튼과 화면 사용 팁</h2>
+        <ul>
+            <li><strong>SAY AGAIN</strong>은 마지막 Target 콜을 다시 들려줍니다. 새 문제의 Lead Time 중에는 사용할 수 없습니다.</li>
+            <li>톱니바퀴에 마우스를 올리면 Settings 안내가 나타납니다.</li>
+            <li>물음표에 마우스를 올리거나 키보드로 선택하면 한글과 영어 설명이 나옵니다.</li>
+            <li>책 아이콘은 이 사용설명서를 새 탭에서 엽니다. 위쪽 버튼으로 한국어와 English를 바꿀 수 있습니다.</li>
+            <li>화면 폭이 좁아지면 동심원 아래에 Answer와 정답표가 순서대로 배치됩니다.</li>
+            <li>선택한 옵션은 현재 브라우저에 저장됩니다. 실제 음성 종류와 품질은 운영체제와 브라우저에 따라 달라질 수 있습니다.</li>
+        </ul>
+    </article>
+
+    <article data-guide-language="en" lang="en" hidden>
+        <div class="callout">Bullseye Trainer helps you quickly interpret target position, altitude, movement, and multi-group pictures from a Bullseye call.</div>
+
+        <h2>Quick start</h2>
+        <ol>
+            <li>Open the gear menu and choose <strong>Groups</strong> and the training options you want.</li>
+            <li>Press <strong>GENERATE</strong>. Own Bullseye appears first and flashes.</li>
+            <li>Review Own Bullseye during Lead Time. The default is three seconds, shown as <code>3 → 2 → 1</code>.</li>
+            <li>After the countdown, listen to the target call and enter or plot your answer.</li>
+            <li>Press <strong>SUBMIT</strong> to compare your answer with the solution.</li>
+        </ol>
+
+        <h2>Problem sequence</h2>
+        <p>Generate first updates the blue <strong>Own Bullseye</strong> field. When Lead Time is enabled, the target information and voice call wait for the selected number of seconds. Turn Lead Time off when you want the target call immediately.</p>
+        <p>With Voice enabled, target answer values stay hidden until submission. With Voice disabled, the Target table shows Formation, Position, Bullseye, Altitude, and Track after Lead Time.</p>
+
+        <h2>Answering Groups 1</h2>
+        <ul>
+            <li>Enter the bearing from ownship to the target in <strong>Bearing</strong>. Tolerance is ±20°.</li>
+            <li>Enter <strong>Altitude</strong> in thousands of feet. For example, enter <code>15</code> for 15,000ft.</li>
+            <li>When <strong>Answer Range</strong> is enabled, also enter ownship-to-target range. Tolerance is ±10nm.</li>
+            <li>When <strong>Aspect</strong> is enabled, choose HOT, FLANK, BEAM, or COLD.</li>
+            <li>With <strong>Manual Plotting</strong>, click the calculated positions on the scope. Click ownship first and the target second.</li>
+        </ul>
+        <p>Manual Plotting, Answer Range, and Easy are available only with Groups 1.</p>
+
+        <h2>Answering Groups 2 or 3</h2>
+        <ol>
+            <li>Click the ownship position on the scope first.</li>
+            <li>Click each group in the order it was called. Red markers 1, 2, and 3 show that call order.</li>
+            <li>When Aspect is enabled, choose HOT, FLANK, BEAM, or COLD for every group.</li>
+            <li>Enter the requested group's altitude in thousands of feet.</li>
+        </ol>
+        <p>A group position is correct when it is within 15nm of the actual location. Formation and Position labels such as W.LD, TR, and E.LD help identify each group.</p>
+
+        <h2>Reading the result</h2>
+        <ul>
+            <li>A green circle means correct, and a red X means incorrect.</li>
+            <li>An incorrect item shows both <strong>Your answer</strong> and <strong>Correct answer</strong>.</li>
+            <li>Multi-group results are grouped in call order and show Position, Aspect, and the requested Altitude in that order.</li>
+            <li>Position answers are compared on the scope instead of as numbers in the table. Dashed circles show the 15nm tolerance.</li>
+            <li>For an Aspect problem, arrows start outside each target marker and point along the correct track.</li>
+        </ul>
+
+        <h2>Settings and aids</h2>
+        <table>
+            <thead><tr><th>Control</th><th>What it does</th></tr></thead>
+            <tbody>
+                <tr><td>Groups</td><td>Choose 1 for a single target or 2 and 3 for a multi-group picture.</td></tr>
+                <tr><td>Answer Range</td><td>Adds an ownship-to-target range answer for Groups 1.</td></tr>
+                <tr><td>Aspect</td><td>Adds track to the call and asks for each group's movement relative to ownship.</td></tr>
+                <tr><td>Easy</td><td>Shows the actual ownship and target positions before submission in Groups 1.</td></tr>
+                <tr><td>Show BRA</td><td>Shows or hides bearing lines and range marks on the scope.</td></tr>
+                <tr><td>Manual Plotting</td><td>Lets you plot calculated ownship and target positions in Groups 1.</td></tr>
+                <tr><td>Voice</td><td>Enables or disables the spoken English target call.</td></tr>
+                <tr><td>Voice gender</td><td>Prefers a Male or Female voice. Female is the default.</td></tr>
+                <tr><td>Voice speed</td><td>Adjusts playback speed. The current 1.0× has the same actual rate as 0.7× in the previous version.</td></tr>
+                <tr><td>Dark mode</td><td>Switches between the light and dark display.</td></tr>
+                <tr><td>Lead Time</td><td>Sets the Own Bullseye review time. It defaults to enabled at three seconds and can be set from 1 to 30 seconds.</td></tr>
+                <tr><td>Fix Own Bullseye</td><td>Keeps the current Own Bullseye position for the next problem.</td></tr>
+                <tr><td>Auto refresh</td><td>Generates a new problem after the selected delay following submission.</td></tr>
+            </tbody>
+        </table>
+
+        <h2>Buttons and display tips</h2>
+        <ul>
+            <li><strong>SAY AGAIN</strong> repeats the most recent target call. It is unavailable during a new problem's Lead Time.</li>
+            <li>Hover over the gear to see its Settings label.</li>
+            <li>Hover over or focus a question mark to read its Korean and English explanation.</li>
+            <li>The book icon opens this guide in a new tab. Use the buttons above to switch between 한국어 and English.</li>
+            <li>On a narrow screen, Answer and the result table appear below the scope.</li>
+            <li>Your options are saved in the current browser. Available voice gender and quality depend on the operating system and browser.</li>
+        </ul>
+    </article>
+</main>
+
+<script>
+    const languageButtons = document.querySelectorAll('[data-language]');
+    const guideSections = document.querySelectorAll('[data-guide-language]');
+
+    function showLanguage(language) {
+        document.documentElement.lang = language;
+        languageButtons.forEach(button => {
+            button.setAttribute('aria-pressed', String(button.dataset.language === language));
+        });
+        guideSections.forEach(section => {
+            section.hidden = section.dataset.guideLanguage !== language;
+        });
+    }
+
+    languageButtons.forEach(button => {
+        button.addEventListener('click', () => showLanguage(button.dataset.language));
+    });
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@
     <meta name="keywords" content="DCS World, Falcon BMS, Bullseye, Bullseye Trainer, BRA calculation, Flight Sim, VRAF, Badger, Situational Awareness">
     <meta name="author" content="Badger">
 
-    <meta property="og:title" content="DCS Bullseye Trainer v0.1 by Badger">
+    <meta property="og:title" content="DCS Bullseye Trainer v0.2 by Badger">
     <meta property="og:description" content="Sharpen your tactical skills with this interactive Bullseye training tool.">
     <meta property="og:image" content="https://badger-kr.github.io/bullseye_trainer/preview.png"> <meta property="og:url" content="https://badger-kr.github.io/bullseye_trainer/">
     <title>Bullseye Trainer</title>
@@ -67,43 +67,112 @@
             min-height: 100vh;
             margin: 0;
             color: var(--text-color);
-            padding: 20px 10px;
+            padding: 10px;
             transition: background-color 0.3s, color 0.3s;
         }
         .app-container {
             position: relative;
-            display: flex;
-            flex-direction: row;
+            display: grid;
+            grid-template-columns: 410px 400px;
+            grid-template-areas:
+                "main radar"
+                "answer radar"
+                "result radar";
             background-color: var(--panel-bg);
-            padding: 40px 30px 30px 30px;
-            gap: 30px;
+            padding: 38px 24px 24px;
+            column-gap: 20px;
+            row-gap: 9px;
+            align-items: start;
             border-radius: 15px;
             box-shadow: 0 10px 20px var(--shadow-color);
             max-width: 100%;
             transition: background-color 0.3s, box-shadow 0.3s;
         }
 
-        .theme-toggle {
+        .settings-toggle {
             position: absolute;
-            top: 20px;
-            right: 25px;
+            top: 10px;
+            right: 14px;
             cursor: pointer;
             user-select: none;
-            font-size: 20px;
+            font-size: 19px;
             line-height: 1;
-            z-index: 10;
+            z-index: 30;
+            width: 34px;
+            height: 34px;
+            margin: 0;
+            padding: 0;
+            border-radius: 50%;
+            background-color: transparent;
+            color: var(--text-color);
+        }
+        .settings-toggle:hover,
+        .settings-toggle[aria-expanded="true"] {
+            background-color: var(--bg-color);
+        }
+        .guide-link {
+            position: absolute;
+            top: 10px;
+            right: 54px;
+            z-index: 30;
+            display: inline-flex;
+            width: 34px;
+            height: 34px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 18px;
+        }
+        .guide-link:hover {
+            background-color: var(--bg-color);
+        }
+        .settings-panel {
+            position: absolute;
+            top: 48px;
+            right: 14px;
+            z-index: 25;
+            width: min(320px, calc(100vw - 28px));
+            max-height: calc(100vh - 64px);
+            overflow-y: auto;
+            padding: 14px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            box-shadow: 0 10px 24px var(--shadow-color);
+        }
+        .settings-panel[hidden] {
+            display: none;
+        }
+        .settings-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .theme-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .settings-panel fieldset + fieldset {
+            margin-top: 10px;
         }
 
         .left-panel {
+            grid-area: main;
             display: flex;
             flex-direction: column;
-            width: 280px;
-            gap: 15px;
+            width: 410px;
+            gap: 9px;
         }
 
         .title-container {
             text-align: center;
-            margin-bottom: 5px;
+            margin-bottom: 0;
         }
         .title-container h1 {
             margin: 0;
@@ -116,14 +185,50 @@
             margin-top: 5px;
             font-size: 13px;
             color: var(--muted-color);
-            font-style: italic;
             transition: color 0.3s;
+        }
+        .badger-credit {
+            font-weight: bold;
+            font-size: 15px;
+            color: #e67e22;
         }
 
         .right-panel {
+            grid-area: radar;
+            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+        .call-countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 5;
+            display: flex;
+            width: 72px;
+            height: 72px;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            background: rgba(231, 76, 60, 0.9);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
+            color: #fff;
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+        .call-countdown[hidden] { display: none; }
+        .call-countdown.countdown-pop {
+            animation: countdown-pop 0.85s ease-out both;
+        }
+        @keyframes countdown-pop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.62); }
+            22% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0.35; transform: translate(-50%, -50%) scale(1.12); }
         }
         canvas {
             background-color: var(--canvas-bg);
@@ -140,7 +245,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            margin-top: 5px;
+            margin-top: 0;
         }
         .top-controls {
             display: flex;
@@ -148,16 +253,26 @@
             align-items: center;
             font-size: 15px;
         }
-        .top-controls-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
         .plot-controls {
             display: flex;
             align-items: center;
+            gap: 4px;
             font-size: 14px;
+            min-height: 25px;
+        }
+        .posit-options {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            margin-bottom: 10px;
+            color: var(--muted-color);
+            font-size: 12px;
+        }
+        .posit-option-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         /* Auto Refresh Number Input Style */
@@ -173,6 +288,25 @@
             font-size: 13px;
             border-radius: 4px;
             transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        .voice-rate-input {
+            flex: 1;
+            min-width: 90px;
+        }
+        #voiceRateValue {
+            width: 34px;
+            text-align: right;
+            font: bold 12px 'Courier New', Courier, monospace;
+            color: var(--muted-color);
+        }
+        .voice-gender-options {
+            display: inline-flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .voice-gender-options label {
+            white-space: nowrap;
         }
 
         #rateDisplay {
@@ -237,9 +371,31 @@
             z-index: 100;
         }
         .help-icon:hover::after,
-        .help-icon:hover::before {
+        .help-icon:hover::before,
+        .help-icon:focus::after,
+        .help-icon:focus::before {
             opacity: 1;
             visibility: visible;
+        }
+        .help-icon::after,
+        .help-icon::before {
+            display: none;
+        }
+        .help-tooltip-popup {
+            position: fixed;
+            z-index: 1000;
+            width: min(280px, calc(100vw - 24px));
+            padding: 10px 14px;
+            border-radius: 6px;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            font-size: 12px;
+            font-weight: normal;
+            line-height: 1.5;
+            text-align: left;
+            white-space: pre-line;
+            pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
         }
 
         button {
@@ -260,7 +416,7 @@
         }
         fieldset {
             border: 1px solid var(--border-color);
-            padding: 15px;
+            padding: 11px;
             margin: 0;
             border-radius: 8px;
             transition: border-color 0.3s;
@@ -275,7 +431,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 10px;
+            margin-bottom: 7px;
             font-size: 15px;
         }
         .posit-row:last-child {
@@ -284,27 +440,111 @@
         .posit-value {
             padding: 6px 10px;
             border: 1px solid var(--border-color);
-            width: 140px;
-            text-align: center;
+            width: 190px;
+            text-align: right;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 15px;
+            font-size: 13px;
             border-radius: 4px;
+            white-space: nowrap;
             transition: border-color 0.3s, opacity 0.15s;
+        }
+        .posit-value.own-bullseye-flash {
+            animation: own-bullseye-flash 0.72s ease-in-out 2;
+        }
+        @keyframes own-bullseye-flash {
+            0%, 100% { box-shadow: none; transform: scale(1); }
+            50% {
+                box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.24), 0 0 18px rgba(52, 152, 219, 0.9);
+                transform: scale(1.035);
+            }
         }
         .blue-bg { background-color: #3498db; color: white; border-color: #2980b9; }
         .red-bg { background-color: #e74c3c; color: white; border-color: #c0392b; }
 
+        .target-section-label {
+            margin: 8px 0 5px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #c0392b;
+        }
+        .target-table-wrap {
+            overflow-x: auto;
+            border: 1px solid #c0392b;
+            border-radius: 6px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 11px;
+        }
+        .data-table th,
+        .data-table td {
+            padding: 5px 4px;
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+            white-space: nowrap;
+        }
+        .data-table th:last-child,
+        .data-table td:last-child {
+            border-right: none;
+        }
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .data-table th {
+            background-color: rgba(127, 140, 141, 0.13);
+            color: var(--muted-color);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+        .target-table td {
+            color: var(--text-color);
+        }
+        .target-table .formation-cell {
+            color: #c0392b;
+            font-weight: bold;
+        }
+        .target-table th:nth-child(1) { width: 20%; }
+        .target-table th:nth-child(2) { width: 14%; }
+        .target-table th:nth-child(3) { width: 27%; }
+        .target-table th:nth-child(4) { width: 24%; }
+        .target-table th:nth-child(5) { width: 15%; }
+        .group-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .group-number-badge {
+            display: inline-flex;
+            width: 18px;
+            height: 18px;
+            flex: 0 0 18px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: #e74c3c;
+            color: #fff;
+            font: bold 10px 'Segoe UI', Tahoma, sans-serif;
+            line-height: 1;
+        }
+
         .input-row {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 5px;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 6px;
             font-size: 15px;
         }
         .input-row input {
-            width: 80px;
-            padding: 8px;
+            width: 92px;
+            flex: 0 0 92px;
+            padding: 7px;
             text-align: center;
             border: 1px solid var(--border-color);
             background-color: var(--input-bg);
@@ -320,76 +560,318 @@
             padding: 8px 16px;
             font-size: 14px;
         }
+        #answerFieldset {
+            grid-area: answer;
+            min-width: 0;
+        }
+        #answerFieldset:disabled {
+            opacity: 0.5;
+        }
 
         #resultBox {
-            padding: 15px;
-            text-align: center;
-            font-weight: bold;
+            grid-area: result;
+            min-width: 0;
+            padding: 6px;
             display: none;
+            overflow-x: auto;
             border-radius: 8px;
-            border: 1px solid rgba(0,0,0,0.3);
-            margin-top: 5px;
+            border: 1px solid var(--border-color);
+            margin-top: 0;
+            background-color: var(--panel-bg);
         }
-        .correct { background-color: #2ecc71; color: white; }
-        .incorrect { background-color: #e74c3c; color: white; }
+        .result-table {
+            table-layout: auto;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            font-size: 12px;
+        }
+        .result-table th:nth-child(2),
+        .result-table td:nth-child(2) {
+            width: 58px;
+        }
+        .result-table th:nth-child(3),
+        .result-table th:nth-child(4) {
+            width: 27%;
+        }
+        .result-table td:first-child {
+            text-align: left;
+        }
+        .result-group-heading th {
+            padding: 6px 8px;
+            text-align: left;
+            background-color: rgba(231, 76, 60, 0.12);
+            color: var(--text-color);
+            font-size: 11px;
+        }
+        .result-group-heading.ownship-heading th {
+            background-color: rgba(52, 152, 219, 0.12);
+        }
+        .result-status {
+            display: inline-flex;
+            width: 18px;
+            height: 18px;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .result-correct {
+            color: #27ae60;
+        }
+        .result-incorrect {
+            color: #e74c3c;
+        }
 
-        @media (max-width: 768px) {
-            body { align-items: flex-start; }
-            .app-container {
-                flex-direction: column;
-                padding: 30px 20px 20px 20px;
-                gap: 20px;
-                width: 100%;
-                max-width: 400px;
+        /* GENERATE + SAY AGAIN 한 행 배치 */
+        .generate-row {
+            display: flex;
+            gap: 8px;
+        }
+        .generate-row #btnGenerate {
+            flex: 1;
+        }
+        #btnSayAgain {
+            width: auto;
+            font-size: 13px;
+            padding: 10px 12px;
+            background-color: #16a085;
+        }
+        #btnSayAgain:hover {
+            background-color: #117864;
+        }
+        #btnSayAgain:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+        .auto-refresh-bar {
+            justify-content: flex-end;
+            padding: 0 4px;
+            color: var(--muted-color);
+        }
+        .auto-refresh-bar label {
+            color: var(--text-color);
+        }
+
+        /* Aspect 답변 버튼 행 (HOT/FLANK/BEAM/COLD) */
+        .aspect-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 6px;
+        }
+        .aspect-label {
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 42px;
+            text-align: right;
+            color: var(--muted-color);
+        }
+        .aspect-btn {
+            width: auto;
+            margin-top: 0;
+            padding: 6px 8px;
+            font-size: 12px;
+            font-weight: bold;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        .aspect-btn:hover {
+            background-color: var(--border-color);
+        }
+        .aspect-btn.selected {
+            background-color: #3498db;
+            border-color: #2980b9;
+            color: #fff;
+        }
+
+        .input-row label {
+            flex: 1;
+            font-size: 13px;
+            line-height: 1.25;
+            text-align: left;
+        }
+        .answer-instruction {
+            margin-top: 7px;
+            font-size: 13px;
+            text-align: center;
+            color: var(--muted-color);
+        }
+        .submit-row {
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                align-items: flex-start;
+                padding: 4px;
             }
-            .left-panel { width: 100%; }
-            canvas { width: 100%; max-width: 380px; }
-            .theme-toggle { top: 15px; right: 15px; }
+            .app-container {
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-areas:
+                    "main"
+                    "radar"
+                    "answer"
+                    "result";
+                padding: 30px 8px 8px;
+                gap: 7px;
+                width: 100%;
+                max-width: 430px;
+                border-radius: 10px;
+            }
+            .left-panel {
+                width: 100%;
+                gap: 6px;
+            }
+            .title-container h1 { font-size: 21px; }
+            .title-container .subtitle { margin-top: 1px; }
+            .settings-toggle { top: 5px; right: 7px; }
+            .guide-link { top: 5px; right: 47px; }
+            .settings-panel {
+                position: fixed;
+                top: 44px;
+                right: 7px;
+                max-height: calc(100vh - 52px);
+            }
+            fieldset { padding: 7px; }
+            .generate-row button { padding: 9px; }
+            .posit-row { margin-bottom: 4px; }
+            .target-section-label { margin-top: 5px; }
+            .data-table th,
+            .data-table td { padding: 4px 2px; }
+            #resultBox { padding: 4px; }
+            canvas {
+                width: min(100%, 42vh);
+                max-width: 380px;
+            }
+        }
+
+        @media (max-width: 900px) and (max-height: 720px) {
+            .title-container h1 { font-size: 18px; }
+            .title-container .subtitle { font-size: 11px; }
+            .badger-credit { font-size: 12px; }
+            canvas { width: min(100%, 34vh); }
         }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <label class="theme-toggle" title="Toggle Light/Dark Mode">
-        <input type="checkbox" id="themeToggle" style="display:none;">
-        <span id="themeIcon">🌙</span>
-    </label>
+    <a class="guide-link" href="bullseye_manual.html" target="_blank" rel="noopener" aria-label="Open user guide" title="User Guide / 사용설명서">📘</a>
+    <button type="button" class="settings-toggle" id="settingsToggle" aria-label="Open settings" aria-controls="settingsPanel" aria-expanded="false" title="Settings">⚙️</button>
+
+    <div class="settings-panel" id="settingsPanel" hidden>
+        <div class="settings-header">
+            <strong>Settings</strong>
+            <label class="theme-option" title="Toggle Light/Dark Mode">
+                <input type="checkbox" id="themeToggle">
+                <span id="themeIcon">🌙</span> Dark mode
+            </label>
+        </div>
+
+        <fieldset>
+            <legend>Challenges</legend>
+            <div class="plot-controls">
+                <label><input type="checkbox" id="answerRangeMode"> Answer Range</label>
+                <span class="help-icon" data-tooltip="단일 그룹 문제에서 내 기체와 타겟 사이의 거리도 함께 답합니다. 정답 허용 범위는 ±10nm입니다.
+
+For a single-group problem, also enter the range from ownship to the target. The tolerance is ±10nm.">?</span>
+            </div>
+            <div class="plot-controls">
+                <label><input type="checkbox" id="aspectMode"> Aspect</label>
+                <span class="help-icon" data-tooltip="음성 콜에 각 그룹의 진행 방향(track)이 추가됩니다. 내 기체에서 본 움직임을 기준으로 HOT / FLANK / BEAM / COLD 중 하나를 선택합니다.
+
+Adds each group's track to the voice call. Choose HOT, FLANK, BEAM, or COLD based on its movement relative to ownship.">?</span>
+            </div>
+            <div class="plot-controls">
+                <span style="margin-right: 4px;">Groups</span>
+                <label><input type="radio" name="groups" value="1" checked> 1</label>
+                <label><input type="radio" name="groups" value="2"> 2</label>
+                <label><input type="radio" name="groups" value="3"> 3</label>
+                <span class="help-icon" data-tooltip="1은 단일 타겟 문제입니다. 2 또는 3을 선택하면 picture 콜이 나오며, 동심원에 내 기체를 먼저 찍고 불러준 순서대로 각 그룹을 찍습니다. 그룹 위치의 허용 반경은 15nm입니다.
+
+Choose 1 for a single target. With 2 or 3 groups, plot ownship first and then each group in call order. Group-position tolerance is 15nm.">?</span>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Assist</legend>
+            <div class="plot-controls">
+                <label><input type="checkbox" id="easyMode"> Easy</label>
+                <span class="help-icon" data-tooltip="단일 그룹 문제에서 제출하기 전에도 동심원에 내 기체와 타겟의 실제 위치를 보여줍니다. 위치 계산을 처음 연습할 때 유용합니다.
+
+For single-group practice, shows the actual ownship and target positions on the scope before submission. Useful while learning position calculations.">?</span>
+            </div>
+            <div class="plot-controls">
+                <label><input type="checkbox" id="showBraMode" checked> Show BRA</label>
+                <span class="help-icon" data-tooltip="동심원에 Bullseye 기준 방위선과 거리 눈금을 표시합니다. 끄면 위치 표시만 남아 화면이 단순해집니다.
+
+Shows Bullseye bearing lines and range marks on the scope. Turn it off for a cleaner display.">?</span>
+            </div>
+            <div class="plot-controls">
+                <label><input type="checkbox" id="plotMode"> Manual Plotting</label>
+                <span class="help-icon" data-tooltip="단일 그룹 문제에서 계산한 위치를 동심원에 직접 표시할 수 있습니다. 첫 번째 클릭은 내 기체, 두 번째 클릭은 타겟 위치입니다.
+
+Available only with Groups=1. Click ownship first, then click the calculated target position.">?</span>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Session</legend>
+            <div class="plot-controls">
+                <label><input type="checkbox" id="voiceMode" checked> Voice</label>
+                <span class="help-icon" data-tooltip="Target 정보를 영어 음성 콜로 재생합니다. Voice를 끄면 Lead Time이 지난 뒤 Target 표에서 문제 정보를 직접 확인할 수 있습니다.
+
+Plays the target information as an English voice call. When Voice is off, the target table shows the problem information after Lead Time.">?</span>
+            </div>
+            <div class="plot-controls">
+                <span>Voice gender</span>
+                <span class="voice-gender-options">
+                    <label><input type="radio" name="voiceGender" value="male"> Male</label>
+                    <label><input type="radio" name="voiceGender" value="female" checked> Female</label>
+                </span>
+                <span class="help-icon" tabindex="0" data-tooltip="브라우저에 설치된 영어 음성 중 선택한 성별과 가장 잘 맞는 음성을 우선 사용합니다. 일치하는 음성이 없으면 사용 가능한 영어 음성으로 자동 대체됩니다.
+
+Prefers an installed English voice matching the selected gender. If none matches, the app automatically uses another available English voice.">?</span>
+            </div>
+            <div class="plot-controls">
+                <label for="voiceRate">Voice speed</label>
+                <input type="range" id="voiceRate" class="voice-rate-input" value="1.0" min="0.7" max="1.2" step="0.05">
+                <output id="voiceRateValue" for="voiceRate">1.0×</output>
+                <span class="help-icon" tabindex="0" data-tooltip="음성 콜의 재생 속도를 조절합니다. 기본값 1.0×는 이전 버전의 0.7×와 같은 실제 속도입니다.
+
+Adjusts the voice-call playback speed. The default 1.0× has the same actual rate as 0.7× in the previous version.">?</span>
+            </div>
+        </fieldset>
+    </div>
 
     <div class="left-panel">
 
         <div class="title-container">
             <h1>BULLSEYE TRAINER</h1>
-            <div class="subtitle">by Badger 🇰🇷 v0.1</div>
+            <div class="subtitle"><span class="badger-credit">by Badger 🇰🇷</span> v0.2</div>
         </div>
 
         <div class="controls-group">
             <div class="top-controls">
-                <div class="top-controls-left">
-                    <label><input type="checkbox" id="easyMode"> Easy</label>
-                    <label><input type="checkbox" id="voiceMode" checked> Voice</label>
-                    <label><input type="checkbox" id="showBraMode" checked> Show BRA</label>
-                </div>
-                <div style="display: flex; align-items: center;">
+                <div style="display: flex; align-items: center; margin-left: auto;">
                     <span id="rateDisplay">Score: 0% (0/0)</span>
                 </div>
             </div>
-
-            <div class="plot-controls">
-                <label><input type="checkbox" id="plotMode"> Manual Plotting</label>
-                <span class="help-icon" data-tooltip="동심원에 예상 위치를 직접 마킹해 볼 수 있습니다. 첫 번째 클릭은 내 기체(파란색), 두 번째 클릭은 타겟(빨간색)으로 표시됩니다.
-
-You can manually mark the estimated positions on the concentric circles. The first click marks your aircraft (blue), and the second click marks the target (red).">?</span>
-            </div>
-
-            <div class="plot-controls">
-                <label><input type="checkbox" id="autoRefreshMode" checked> Auto refresh in</label>
-                <input type="number" id="refreshInterval" class="refresh-input" value="10" min="1" max="99">
-                <span style="margin-left: 4px; font-size: 14px; color: var(--muted-color);">s</span>
-            </div>
         </div>
 
-        <button id="btnGenerate">GENERATE</button>
+        <div class="generate-row">
+            <button id="btnGenerate">GENERATE</button>
+            <button id="btnSayAgain" disabled>SAY AGAIN</button>
+        </div>
+
+        <div class="plot-controls auto-refresh-bar">
+            <label><input type="checkbox" id="autoRefreshMode" checked> Auto refresh in</label>
+            <input type="number" id="refreshInterval" class="refresh-input" value="10" min="1" max="99">
+            <span>s</span>
+        </div>
 
         <fieldset>
             <legend>Posit</legend>
@@ -397,33 +879,65 @@ You can manually mark the estimated positions on the concentric circles. The fir
                 <span>Own Bullseye:</span>
                 <div class="posit-value blue-bg" id="myPosit">---° | -- nm</div>
             </div>
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
-                <label style="font-size: 12px; color: var(--muted-color); cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                    <input type="checkbox" id="fixOwnBullseye"> Fix Own Bullseye
-                </label>
+            <div class="posit-options">
+                <div class="posit-option-row">
+                    <label><input type="checkbox" id="leadTimeMode" checked> Lead Time</label>
+                    <input type="number" id="leadTimeSeconds" class="refresh-input" value="3" min="1" max="30" step="1" inputmode="numeric" aria-label="Lead Time in seconds">
+                    <span>s</span>
+                    <span class="help-icon" tabindex="0" data-tooltip="Own Bullseye를 확인할 시간을 설정합니다. Generate를 누르면 설정한 시간이 지난 뒤 Target 정보와 음성 콜이 나옵니다. 체크를 끄면 즉시 시작합니다.
+
+Sets how long you can review Own Bullseye before the target information and voice call begin. Turn it off to start the target call immediately.">?</span>
+                </div>
+                <div class="posit-option-row">
+                    <label><input type="checkbox" id="fixOwnBullseye"> Fix Own Bullseye</label>
+                    <span class="help-icon" tabindex="0" data-tooltip="다음 문제를 생성해도 현재 Own Bullseye 위치를 그대로 유지합니다. 같은 위치에서 여러 콜을 연속으로 연습할 때 사용합니다.
+
+Keeps the current Own Bullseye position when generating the next problem. Useful for practicing several calls from one location.">?</span>
+                </div>
             </div>
 
-            <div class="posit-row">
-                <span>Target Bullseye:</span>
-                <div class="posit-value red-bg" id="tgtPosit">---° | -- nm</div>
+            <div class="target-section-label">Target Bullseye</div>
+            <div class="target-table-wrap" id="tgtPosit" aria-live="polite">
+                <table class="data-table target-table">
+                    <thead><tr><th>Formation</th><th>Position</th><th>Bullseye</th><th>Altitude</th><th>Track</th></tr></thead>
+                    <tbody><tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr></tbody>
+                </table>
             </div>
         </fieldset>
 
-        <fieldset>
-            <legend>Bearing to target</legend>
-            <div class="input-row">
-                <input type="number" id="inputBearing" inputmode="numeric" pattern="[0-9]*" placeholder="000">
-                <button id="btnCheck">SUBMIT</button>
-            </div>
-        </fieldset>
-
-        <div id="resultBox"></div>
     </div>
 
     <div class="right-panel">
         <canvas id="radarCanvas" width="400" height="400"></canvas>
+        <div id="callCountdown" class="call-countdown" aria-live="assertive" hidden></div>
     </div>
+
+    <fieldset id="answerFieldset">
+        <legend>Answer <span class="help-icon" tabindex="0" data-tooltip="단일 그룹에서는 내 기체에서 타겟으로 향하는 방위와 타겟 고도를 입력합니다. 설정에 따라 거리와 aspect도 답합니다. 다중 그룹에서는 동심원에 내 기체를 먼저 찍고, 불러준 순서대로 모든 그룹을 찍은 뒤 질문받은 고도와 각 그룹의 aspect를 답합니다.
+
+For one group, enter the bearing from ownship to target and the target altitude, plus range or aspect when enabled. For multiple groups, plot ownship and every group in call order, then answer the requested altitude and each group's aspect.">?</span></legend>
+        <div class="input-row" id="bearingRow">
+            <label for="inputBearing" id="bearingLabel">Enter the bearing from ownship to target</label>
+            <input type="number" id="inputBearing" inputmode="numeric" pattern="[0-9]*" placeholder="000">
+        </div>
+        <div class="input-row" id="rangeRow" style="display: none;">
+            <label for="inputRange">Enter the range from ownship to target (nm)</label>
+            <input type="number" id="inputRange" inputmode="numeric" pattern="[0-9]*" placeholder="--">
+        </div>
+        <div class="input-row" id="altRow">
+            <label for="inputAlt" id="altLabel">Enter the altitude of the target (x1,000 ft)</label>
+            <input type="number" id="inputAlt" inputmode="numeric" pattern="[0-9]*" placeholder="--">
+        </div>
+        <div id="aspectArea" style="display: none;"></div>
+        <div class="input-row submit-row">
+            <button id="btnCheck">SUBMIT</button>
+        </div>
+    </fieldset>
+
+    <div id="resultBox"></div>
 </div>
+
+<div id="helpTooltip" class="help-tooltip-popup" role="tooltip" hidden></div>
 
 <script>
     const canvas = document.getElementById('radarCanvas');
@@ -436,10 +950,23 @@ You can manually mark the estimated positions on the concentric circles. The fir
     const SCALE = RADIUS / MAX_RANGE;
 
     let myData = { brg: 0, rng: 0 };
-    let tgtData = { brg: 0, rng: 0 };
+    let tgtData = { brg: 0, rng: 0, alt: 0, hdg: 0 };
     let isCorrect = false;
     let isChecked = false;
     let trueBearing = 0;
+    let trueRange = 0;
+
+    // v0.2: picture(Groups>=2) 모드 상태
+    let currentGroups = 1;        // 현재 문제의 그룹 수
+    let groupsData = [];          // 콜 순서대로 정렬된 그룹 배열 {label, x, y, brg, rng, alt, hdg}
+    let pictureShape = '';        // azimuth/range/wall/ladder/vic/champagne
+    let azimuthSep = 0;           // azimuth 콜에 포함할 분리 거리(nm)
+    let altQuestionIdx = 0;       // altitude 질문 대상 그룹 인덱스
+    let userClicks = [];          // 플로팅 클릭 (첫번째=ownship)
+    let userAspectAnswers = [];   // 그룹별 aspect 답 선택
+    let lastUtterances = [];      // Say Again용 마지막 콜
+    let itemResults = [];         // 항목별 채점 결과 {type, label, ok, userAns, correctAns, groupIndex}
+    let problemAspectOn = false;  // 문제 생성 시점의 Aspect 토글 스냅샷
 
     let correctAnswers = 0;
     let totalAttempts = 0;
@@ -452,9 +979,16 @@ You can manually mark the estimated positions on the concentric circles. The fir
     let userMyPos = null;
     let userTgtPos = null;
     let myVoice = null;
+    let speechSequenceToken = 0;
 
     let autoRefreshTimeout = null;
     let countdownInterval = null;
+    let targetRevealTimeout = null;
+    let targetCountdownInterval = null;
+    let isTargetCallPending = false;
+
+    const DEFAULT_LEAD_TIME_SECONDS = 3;
+    const SPEECH_RATE_SCALE = 0.7;
 
     let themeColors = {};
     function updateThemeColors() {
@@ -468,24 +1002,37 @@ You can manually mark the estimated positions on the concentric circles. The fir
         themeColors.bullseye = rootStyle.getPropertyValue('--bra-bullseye').trim() || 'rgba(0,0,0,0.5)';
     }
 
+    const VOICE_GENDER_HINTS = {
+        male: ['alex', 'fred', 'daniel', 'aaron', 'david', 'guy', 'eric', 'matthew', 'joey', 'justin', 'brian', 'arthur', 'roger', 'ryan', 'christopher', 'liam', 'mark'],
+        female: ['samantha', 'victoria', 'karen', 'allison', 'ava', 'susan', 'zira', 'aria', 'jenny', 'joanna', 'kimberly', 'salli', 'ivy', 'emma', 'olivia', 'michelle', 'sonia', 'natasha', 'google us english']
+    };
+
+    function getVoiceGenderSetting() {
+        return document.querySelector('input[name="voiceGender"]:checked')?.value || 'female';
+    }
+
+    function voiceQualityScore(voice) {
+        const name = voice.name.toLowerCase();
+        if (name.includes('natural')) return 4;
+        if (name.includes('premium')) return 3;
+        if (name.includes('enhanced')) return 2;
+        if (name.includes('google')) return 1;
+        return 0;
+    }
+
     function initVoices() {
         const voices = window.speechSynthesis.getVoices();
         if (voices.length === 0) return;
 
-        const preferredNames = ['Alex', 'Fred', 'Microsoft David', 'Google US English'];
-        for (let name of preferredNames) {
-            const voice = voices.find(v => v.name.includes(name) && v.lang.includes('en-US'));
-            if (voice) {
-                myVoice = voice;
-                return;
-            }
-        }
-        if (!myVoice) {
-            myVoice = voices.find(v => v.lang.includes('en-US') && v.name.toLowerCase().includes('male'));
-        }
-        if (!myVoice) {
-            myVoice = voices.find(v => v.lang.includes('en-US'));
-        }
+        const englishVoices = voices.filter(voice => voice.lang.toLowerCase().startsWith('en'));
+        const enUS = englishVoices.filter(voice => voice.lang.toLowerCase().includes('en-us'));
+        const candidates = enUS.length > 0 ? enUS : englishVoices;
+        const gender = getVoiceGenderSetting();
+        const genderMatches = candidates.filter(voice =>
+            VOICE_GENDER_HINTS[gender].some(hint => voice.name.toLowerCase().includes(hint))
+        );
+        const preferred = genderMatches.length > 0 ? genderMatches : candidates;
+        myVoice = preferred.sort((a, b) => voiceQualityScore(b) - voiceQualityScore(a))[0] || null;
     }
 
     if ('speechSynthesis' in window) {
@@ -494,6 +1041,77 @@ You can manually mark the estimated positions on the concentric circles. The fir
             speechSynthesis.onvoiceschanged = initVoices;
         }
     }
+
+    // 톱니바퀴 설정 패널 열기/닫기
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const helpTooltip = document.getElementById('helpTooltip');
+    let activeHelpIcon = null;
+
+    function hideSettingsHelp() {
+        helpTooltip.hidden = true;
+        activeHelpIcon = null;
+    }
+
+    function showSettingsHelp(icon) {
+        const tooltipText = icon.dataset.tooltip;
+        if (!tooltipText) return;
+        activeHelpIcon = icon;
+        helpTooltip.textContent = tooltipText;
+        helpTooltip.hidden = false;
+        helpTooltip.style.left = '12px';
+        helpTooltip.style.top = '12px';
+
+        const iconRect = icon.getBoundingClientRect();
+        const tooltipRect = helpTooltip.getBoundingClientRect();
+        const margin = 12;
+        let left = iconRect.left + iconRect.width / 2 - tooltipRect.width / 2;
+        left = Math.max(margin, Math.min(left, window.innerWidth - tooltipRect.width - margin));
+        let top = iconRect.top - tooltipRect.height - 8;
+        if (top < margin) top = iconRect.bottom + 8;
+        top = Math.max(margin, Math.min(top, window.innerHeight - tooltipRect.height - margin));
+        helpTooltip.style.left = `${left}px`;
+        helpTooltip.style.top = `${top}px`;
+    }
+
+    document.querySelectorAll('.help-icon').forEach(icon => {
+        icon.tabIndex = 0;
+        icon.addEventListener('pointerenter', () => showSettingsHelp(icon));
+        icon.addEventListener('pointerleave', () => {
+            if (document.activeElement !== icon) hideSettingsHelp();
+        });
+        icon.addEventListener('focus', () => showSettingsHelp(icon));
+        icon.addEventListener('blur', hideSettingsHelp);
+        icon.addEventListener('click', event => {
+            event.stopPropagation();
+            showSettingsHelp(icon);
+        });
+    });
+
+    settingsPanel.addEventListener('scroll', hideSettingsHelp);
+    window.addEventListener('scroll', hideSettingsHelp);
+    window.addEventListener('resize', hideSettingsHelp);
+
+    function setSettingsOpen(isOpen) {
+        settingsPanel.hidden = !isOpen;
+        if (!isOpen) hideSettingsHelp();
+        settingsToggle.setAttribute('aria-expanded', String(isOpen));
+        settingsToggle.setAttribute('aria-label', isOpen ? 'Close settings' : 'Open settings');
+    }
+
+    settingsToggle.addEventListener('click', function() {
+        setSettingsOpen(settingsPanel.hidden);
+    });
+
+    document.addEventListener('pointerdown', function(event) {
+        if (!settingsPanel.hidden && !settingsPanel.contains(event.target) && !settingsToggle.contains(event.target)) {
+            setSettingsOpen(false);
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && !settingsPanel.hidden) setSettingsOpen(false);
+    });
 
     document.getElementById('themeToggle').addEventListener('change', function() {
         if (this.checked) {
@@ -507,6 +1125,7 @@ You can manually mark the estimated positions on the concentric circles. The fir
             updateThemeColors();
             drawRadar();
         }, 0);
+        saveSettings();
     });
 
     document.getElementById('plotMode').addEventListener('change', function() {
@@ -515,6 +1134,44 @@ You can manually mark the estimated positions on the concentric circles. The fir
             userTgtPos = null;
             drawRadar();
         }
+    });
+
+    // v0.2: Challenges 토글/라디오 변경 시 입력 UI 갱신 + 설정 저장
+    document.getElementById('answerRangeMode').addEventListener('change', updateInputUI);
+    document.getElementById('aspectMode').addEventListener('change', function() {
+        problemAspectOn = this.checked;
+        updateInputUI();
+    });
+    document.querySelectorAll('input[name="groups"]').forEach(radio => {
+        radio.addEventListener('change', updateInputUI);
+    });
+
+    // 모든 토글/설정 변경 시 localStorage 저장
+    ['easyMode', 'voiceMode', 'showBraMode', 'plotMode', 'autoRefreshMode',
+     'fixOwnBullseye', 'answerRangeMode', 'aspectMode'].forEach(id => {
+        document.getElementById(id).addEventListener('change', saveSettings);
+    });
+    document.getElementById('leadTimeMode').addEventListener('change', function() {
+        updateLeadTimeControl();
+        saveSettings();
+    });
+    document.getElementById('leadTimeSeconds').addEventListener('change', function() {
+        normalizeLeadTimeSeconds();
+        saveSettings();
+    });
+    document.querySelectorAll('input[name="groups"]').forEach(radio => {
+        radio.addEventListener('change', saveSettings);
+    });
+    document.querySelectorAll('input[name="voiceGender"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            initVoices();
+            saveSettings();
+        });
+    });
+    document.getElementById('refreshInterval').addEventListener('input', saveSettings);
+    document.getElementById('voiceRate').addEventListener('input', function() {
+        document.getElementById('voiceRateValue').value = `${parseFloat(this.value).toFixed(2).replace(/0$/, '')}×`;
+        saveSettings();
     });
 
     document.getElementById('showBraMode').addEventListener('change', drawRadar);
@@ -547,22 +1204,32 @@ You can manually mark the estimated positions on the concentric circles. The fir
 
     document.getElementById('btnCheck').addEventListener('click', checkAnswer);
     document.getElementById('easyMode').addEventListener('change', drawRadar);
-    document.getElementById('voiceMode').addEventListener('change', updateTargetPositUI);
-
-    document.getElementById('inputBearing').addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            this.blur();
-            checkAnswer();
+    document.getElementById('voiceMode').addEventListener('change', function() {
+        if (!this.checked && 'speechSynthesis' in window) {
+            speechSequenceToken++;
+            window.speechSynthesis.cancel();
         }
+        updateTargetPositUI();
+        updateSayAgainState();
+    });
+
+    // Say Again: 마지막 콜 전체 재생
+    document.getElementById('btnSayAgain').addEventListener('click', function() {
+        playUtterances(lastUtterances);
+    });
+
+    ['inputBearing', 'inputRange', 'inputAlt'].forEach(id => {
+        document.getElementById(id).addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                this.blur();
+                checkAnswer();
+            }
+        });
     });
 
     canvas.addEventListener('pointerdown', function(event) {
-        const plotMode = document.getElementById('plotMode').checked;
-        if (!plotMode) return;
-
-        const easyMode = document.getElementById('easyMode').checked;
-        if (easyMode || isChecked) return;
+        if (isTargetCallPending) return;
 
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
@@ -570,6 +1237,23 @@ You can manually mark the estimated positions on the concentric circles. The fir
 
         const x = (event.clientX - rect.left) * scaleX;
         const y = (event.clientY - rect.top) * scaleY;
+
+        // picture 모드: 첫 클릭 = ownship, 이후 콜 순서대로 그룹. 초과 시 처음부터 다시.
+        if (currentGroups > 1) {
+            if (isChecked || groupsData.length === 0) return;
+            if (userClicks.length >= groupsData.length + 1) userClicks = [];
+            userClicks.push({x, y});
+            drawRadar();
+            return;
+        }
+
+        if (getGroupsSetting() !== 1) return;
+
+        const plotMode = document.getElementById('plotMode').checked;
+        if (!plotMode) return;
+
+        const easyMode = document.getElementById('easyMode').checked;
+        if (easyMode || isChecked) return;
 
         if (!userMyPos) {
             userMyPos = {x, y};
@@ -583,14 +1267,29 @@ You can manually mark the estimated positions on the concentric circles. The fir
     });
 
     function init() {
+        loadSettings();
+        initVoices();
+        document.getElementById('voiceRateValue').value = `${getVoiceRate().toFixed(2).replace(/0$/, '')}×`;
+        updateLeadTimeControl();
+        currentGroups = getGroupsSetting();
+        problemAspectOn = document.getElementById('aspectMode').checked;
+        updateInputUI();
+        updateTargetPositUI();
+        updateSayAgainState();
         updateThemeColors();
         drawRadar();
+        saveSettings();
     }
 
     function generatePosits() {
         try {
             clearTimeout(autoRefreshTimeout);
             clearInterval(countdownInterval);
+            cancelTargetCallSequence();
+            speechSequenceToken++;
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            lastUtterances = [];
+            updateSayAgainState();
             document.getElementById('btnGenerate').innerText = "GENERATE";
 
             isAnimating = false;
@@ -600,6 +1299,11 @@ You can manually mark the estimated positions on the concentric circles. The fir
 
             userMyPos = null;
             userTgtPos = null;
+            userClicks = [];
+            itemResults = [];
+
+            currentGroups = getGroupsSetting();
+            problemAspectOn = document.getElementById('aspectMode').checked;
 
             const isFixOwn = document.getElementById('fixOwnBullseye').checked;
             if (!isFixOwn || myData.rng === 0) {
@@ -607,70 +1311,333 @@ You can manually mark the estimated positions on the concentric circles. The fir
                 myData.rng = Math.floor(Math.random() * (MAX_RANGE - MIN_RANGE + 1)) + MIN_RANGE;
             }
 
-            tgtData.brg = Math.floor(Math.random() * 361);
-            tgtData.rng = Math.floor(Math.random() * (MAX_RANGE - MIN_RANGE + 1)) + MIN_RANGE;
+            if (currentGroups === 1) {
+                groupsData = [];
+                // aspect 경계 회피가 가능한 위치가 나올 때까지 재생성
+                for (let i = 0; i < 100; i++) {
+                    tgtData.brg = Math.floor(Math.random() * 361);
+                    tgtData.rng = Math.floor(Math.random() * (MAX_RANGE - MIN_RANGE + 1)) + MIN_RANGE;
+                    const hdg = pickHeading(positToXY(tgtData.brg, tgtData.rng));
+                    if (hdg !== null) { tgtData.hdg = hdg; break; }
+                }
+                tgtData.alt = randomAlt();
+                calculateTrueBearing();
+            } else {
+                const groups = generatePicture(currentGroups);
+                if (!groups) throw new Error('picture generation failed');
+                groupsData = groups;
+                altQuestionIdx = Math.floor(Math.random() * groupsData.length);
+            }
 
             const myPositEl = document.getElementById('myPosit');
             myPositEl.innerText = `${myData.brg}° | ${myData.rng} nm`;
-
-            myPositEl.style.opacity = isFixOwn ? '0.7' : '0.4';
-            setTimeout(() => { myPositEl.style.opacity = '1'; }, 150);
-
-            updateTargetPositUI();
-
-            if (document.getElementById('voiceMode').checked) {
-                speakTargetPosit(tgtData.brg, tgtData.rng);
-            }
+            myPositEl.style.opacity = '1';
 
             const inputField = document.getElementById('inputBearing');
             inputField.value = '';
+            document.getElementById('inputRange').value = '';
+            document.getElementById('inputAlt').value = '';
+            updateInputUI();
 
             const resultBox = document.getElementById('resultBox');
             resultBox.style.display = 'none';
+            document.getElementById('answerFieldset').hidden = false;
 
-            calculateTrueBearing();
             drawRadar();
-
-            setTimeout(() => {
-                inputField.focus();
-            }, 50);
+            startTargetCallSequence();
 
         } catch (error) {
+            cancelTargetCallSequence();
             console.error("Critical error during Generation:", error);
             alert("문제 생성 중 예외 오류가 발생했습니다. 브라우저를 새로고침 해주세요.");
         }
     }
 
-    function updateTargetPositUI() {
-        if (tgtData.rng === 0 && tgtData.brg === 0) return;
+    function cancelTargetCallSequence() {
+        clearTimeout(targetRevealTimeout);
+        clearInterval(targetCountdownInterval);
+        targetRevealTimeout = null;
+        targetCountdownInterval = null;
+        isTargetCallPending = false;
+        document.getElementById('callCountdown').hidden = true;
+        document.getElementById('answerFieldset').disabled = false;
+    }
 
-        const isVoice = document.getElementById('voiceMode').checked;
-        if (isVoice && !isChecked) {
-            document.getElementById('tgtPosit').innerText = `---° | -- nm`;
-        } else {
-            document.getElementById('tgtPosit').innerText = `${tgtData.brg}° | ${tgtData.rng} nm`;
+    function showCallCountdown(value) {
+        const countdown = document.getElementById('callCountdown');
+        countdown.textContent = value;
+        countdown.hidden = false;
+        countdown.classList.remove('countdown-pop');
+        void countdown.offsetWidth;
+        countdown.classList.add('countdown-pop');
+    }
+
+    function flashOwnBullseye() {
+        const myPositEl = document.getElementById('myPosit');
+        myPositEl.classList.remove('own-bullseye-flash');
+        void myPositEl.offsetWidth;
+        myPositEl.classList.add('own-bullseye-flash');
+    }
+
+    function normalizeLeadTimeSeconds() {
+        const input = document.getElementById('leadTimeSeconds');
+        const parsed = parseInt(input.value, 10);
+        const seconds = Number.isFinite(parsed)
+            ? Math.min(30, Math.max(1, parsed))
+            : DEFAULT_LEAD_TIME_SECONDS;
+        input.value = seconds;
+        return seconds;
+    }
+
+    function updateLeadTimeControl() {
+        const enabled = document.getElementById('leadTimeMode').checked;
+        document.getElementById('leadTimeSeconds').disabled = !enabled;
+    }
+
+    function revealTargetCall() {
+        clearInterval(targetCountdownInterval);
+        targetCountdownInterval = null;
+        targetRevealTimeout = null;
+        isTargetCallPending = false;
+        document.getElementById('callCountdown').hidden = true;
+        document.getElementById('answerFieldset').disabled = false;
+        updateTargetPositUI();
+        speakUtterances(buildCallUtterances());
+
+        if (currentGroups === 1) {
+            setTimeout(() => document.getElementById('inputBearing').focus(), 50);
         }
     }
 
-    function formatBearingForSpeech(brg) {
-        return brg.toString().padStart(3, '0').split('').join(' ');
+    function startTargetCallSequence() {
+        cancelTargetCallSequence();
+        flashOwnBullseye();
+
+        if (!document.getElementById('leadTimeMode').checked) {
+            revealTargetCall();
+            return;
+        }
+
+        isTargetCallPending = true;
+        document.getElementById('answerFieldset').disabled = true;
+        updateTargetPositUI();
+
+        const leadTimeSeconds = normalizeLeadTimeSeconds();
+        let countdownValue = leadTimeSeconds;
+        showCallCountdown(countdownValue);
+        targetCountdownInterval = setInterval(() => {
+            countdownValue--;
+            if (countdownValue >= 1) showCallCountdown(countdownValue);
+        }, 1000);
+
+        targetRevealTimeout = setTimeout(revealTargetCall, leadTimeSeconds * 1000);
     }
 
-    function speakTargetPosit(brg, rng) {
-        try {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const spokenBearing = formatBearingForSpeech(brg);
-                const textToSpeak = `Bullseye ${spokenBearing}, ${rng} miles.`;
-                const utterance = new SpeechSynthesisUtterance(textToSpeak);
-                utterance.lang = 'en-US';
-                utterance.rate = 1.0;
-                if (myVoice) utterance.voice = myVoice;
-                window.speechSynthesis.speak(utterance);
+    function renderTargetTable(formation, rows) {
+        const container = document.getElementById('tgtPosit');
+        const table = document.createElement('table');
+        table.className = 'data-table target-table';
+
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        ['Formation', 'Position', 'Bullseye', 'Altitude', 'Track'].forEach(label => {
+            const th = document.createElement('th');
+            th.textContent = label;
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        rows.forEach((row, index) => {
+            const tr = document.createElement('tr');
+            if (index === 0) {
+                const formationCell = document.createElement('td');
+                formationCell.className = 'formation-cell';
+                formationCell.rowSpan = rows.length;
+                formationCell.textContent = formation;
+                tr.appendChild(formationCell);
             }
+            const positionCell = document.createElement('td');
+            const positionLabel = document.createElement('span');
+            positionLabel.className = 'group-label';
+            if (row.number) {
+                const badge = document.createElement('span');
+                badge.className = 'group-number-badge';
+                badge.textContent = row.number;
+                positionLabel.appendChild(badge);
+            }
+            const positionText = document.createElement('span');
+            positionText.textContent = row.position;
+            positionLabel.appendChild(positionText);
+            positionCell.appendChild(positionLabel);
+            tr.appendChild(positionCell);
+
+            [row.bullseye, row.altitude, row.track].forEach(value => {
+                const td = document.createElement('td');
+                td.textContent = value;
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        container.replaceChildren(table);
+    }
+
+    function updateTargetPositUI() {
+        if (isTargetCallPending) {
+            const rowCount = currentGroups > 1 ? currentGroups : 1;
+            const rows = Array.from({ length: rowCount }, () => ({
+                position: '—',
+                bullseye: '—',
+                altitude: '—',
+                track: '—'
+            }));
+            renderTargetTable('—', rows);
+            return;
+        }
+
+        const hideAnswers = document.getElementById('voiceMode').checked && !isChecked;
+
+        if (currentGroups > 1 && groupsData.length === 0) {
+            const rows = Array.from({ length: currentGroups }, (_, index) => ({
+                number: index + 1,
+                position: `G${index + 1}`,
+                bullseye: '—',
+                altitude: '—',
+                track: '—'
+            }));
+            renderTargetTable('PICTURE', rows);
+            return;
+        }
+
+        if (currentGroups > 1) {
+            const rows = groupsData.map((g, index) => ({
+                number: index + 1,
+                position: shortLabel(g.label),
+                bullseye: hideAnswers ? '—' : `${g.brg.toString().padStart(3, '0')}° / ${g.rng} nm`,
+                altitude: hideAnswers ? '—' : `${g.alt.toLocaleString('en-US')} ft`,
+                track: hideAnswers || !problemAspectOn ? '—' : TRACK_ABBR[g.hdg]
+            }));
+            renderTargetTable(pictureShape.toUpperCase(), rows);
+            return;
+        }
+
+        const hasTarget = tgtData.rng !== 0 || tgtData.brg !== 0;
+        renderTargetTable('SINGLE', [{
+            position: '—',
+            bullseye: !hasTarget || hideAnswers ? '—' : `${tgtData.brg.toString().padStart(3, '0')}° / ${tgtData.rng} nm`,
+            altitude: !hasTarget || hideAnswers ? '—' : `${tgtData.alt.toLocaleString('en-US')} ft`,
+            track: !hasTarget || hideAnswers || !problemAspectOn ? '—' : TRACK_ABBR[tgtData.hdg]
+        }]);
+    }
+
+    // 숫자→영단어 변환 (방위는 자리별, 0=zero / 9=niner)
+    const DIGIT_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'niner'];
+    const SMALL_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
+        'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+    const TENS_WORDS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+    const TRACK_WORDS = { 0: 'north', 45: 'northeast', 90: 'east', 135: 'southeast', 180: 'south', 225: 'southwest', 270: 'west', 315: 'northwest' };
+    const TRACK_ABBR = { 0: 'N', 45: 'NE', 90: 'E', 135: 'SE', 180: 'S', 225: 'SW', 270: 'W', 315: 'NW' };
+
+    function bearingToWords(brg) {
+        return brg.toString().padStart(3, '0').split('').map(d => DIGIT_WORDS[parseInt(d, 10)]).join(' ');
+    }
+
+    function numberToWords(n) {
+        if (n < 20) return SMALL_WORDS[n];
+        if (n < 100) {
+            const rest = n % 10;
+            return TENS_WORDS[Math.floor(n / 10)] + (rest ? ` ${SMALL_WORDS[rest]}` : '');
+        }
+        const rest = n % 100;
+        return `${SMALL_WORDS[Math.floor(n / 100)]} hundred` + (rest ? ` ${numberToWords(rest)}` : '');
+    }
+
+    function altToWords(alt) {
+        return `${numberToWords(alt / 1000)} thousand`;
+    }
+
+    function capitalize(s) {
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    // 화면 표기는 lead로 유지하고 TTS 문자열에서만 "리드" 발음을 유도
+    function spokenGroupLabel(label) {
+        return label.replace(/\blead\b/g, 'leed');
+    }
+
+    // 한 그룹의 Bullseye, altitude, track을 끊지 않고 이어서 재생
+    function buildCallUtterances() {
+        if (currentGroups === 1) {
+            let text = `Bullseye ${bearingToWords(tgtData.brg)}, ${numberToWords(tgtData.rng)} miles, at ${altToWords(tgtData.alt)}`;
+            if (problemAspectOn) text += `, track ${TRACK_WORDS[tgtData.hdg]}`;
+            return [{ text: text + '.', pauseAfter: 0 }];
+        }
+
+        const utterances = [];
+        let intro = `${currentGroups === 2 ? 'Two' : 'Three'} groups, ${pictureShape}`;
+        if (pictureShape === 'azimuth') intro += ` ${numberToWords(azimuthSep)}`;
+        utterances.push({ text: intro + '.', pauseAfter: 300 });
+
+        groupsData.forEach((g, index) => {
+            const isLast = index === groupsData.length - 1;
+            let text = `${capitalize(spokenGroupLabel(g.label))}. Bullseye ${bearingToWords(g.brg)}, ${numberToWords(g.rng)}, at ${altToWords(g.alt)}`;
+            if (problemAspectOn) text += `, track ${TRACK_WORDS[g.hdg]}`;
+            utterances.push({ text: text + '.', pauseAfter: isLast ? 0 : 300 });
+        });
+        return utterances;
+    }
+
+    function speakUtterances(segments) {
+        lastUtterances = segments.map(segment => ({ ...segment }));
+        updateSayAgainState();
+        if (document.getElementById('voiceMode').checked) {
+            playUtterances(segments);
+        }
+    }
+
+    function getVoiceRate() {
+        const rate = parseFloat(document.getElementById('voiceRate').value);
+        return Number.isFinite(rate) ? rate : 1.0;
+    }
+
+    function getSpeechSynthesisRate() {
+        return getVoiceRate() * SPEECH_RATE_SCALE;
+    }
+
+    function playUtterances(segments) {
+        try {
+            if (!('speechSynthesis' in window)) return;
+            const sequenceToken = ++speechSequenceToken;
+            window.speechSynthesis.cancel();
+
+            const playNext = index => {
+                if (sequenceToken !== speechSequenceToken || index >= segments.length) return;
+                const segment = typeof segments[index] === 'string'
+                    ? { text: segments[index], pauseAfter: 0 }
+                    : segments[index];
+                const utterance = new SpeechSynthesisUtterance(segment.text);
+                utterance.lang = 'en-US';
+                utterance.rate = getSpeechSynthesisRate();
+                if (myVoice) utterance.voice = myVoice;
+                utterance.onend = () => {
+                    const pause = Math.max(0, segment.pauseAfter || 0);
+                    setTimeout(() => playNext(index + 1), pause);
+                };
+                utterance.onerror = () => playNext(index + 1);
+                window.speechSynthesis.speak(utterance);
+            };
+
+            playNext(0);
         } catch (error) {
             console.error("Speech Synthesis Error:", error);
         }
+    }
+
+    function updateSayAgainState() {
+        document.getElementById('btnSayAgain').disabled =
+            isTargetCallPending || lastUtterances.length === 0 || !document.getElementById('voiceMode').checked;
     }
 
     function calculateTrueBearing() {
@@ -690,6 +1657,319 @@ You can manually mark the estimated positions on the concentric circles. The fir
 
         if (angleDeg < 0) angleDeg += 360;
         trueBearing = Math.round(angleDeg);
+        trueRange = Math.round(Math.hypot(dx, dy));
+    }
+
+    // bullseye 기준 nm 좌표 변환 (화면 좌표계: 북 = y 음수)
+    function positToXY(brg, rng) {
+        const rad = brg * (Math.PI / 180);
+        return { x: rng * Math.sin(rad), y: -rng * Math.cos(rad) };
+    }
+
+    function xyToPosit(x, y) {
+        let deg = Math.atan2(x, -y) * (180 / Math.PI);
+        if (deg < 0) deg += 360;
+        return { brg: Math.round(deg) % 360, rng: Math.round(Math.hypot(x, y)) };
+    }
+
+    function randomAlt() {
+        return (Math.floor(Math.random() * 45) + 1) * 1000;
+    }
+
+    function getGroupsSetting() {
+        return parseInt(document.querySelector('input[name="groups"]:checked').value, 10);
+    }
+
+    // aspect angle: 타겟 heading과 "타겟→내 기체" 방위 사이 각도 [0,180]
+    function aspectAngle(grpXY, hdg) {
+        const own = positToXY(myData.brg, myData.rng);
+        const dx = own.x - grpXY.x;
+        const dy = own.y - grpXY.y;
+        let brg = Math.atan2(dx, -dy) * (180 / Math.PI);
+        if (brg < 0) brg += 360;
+        let diff = Math.abs(brg - hdg) % 360;
+        return diff > 180 ? 360 - diff : diff;
+    }
+
+    function classifyAspect(aa) {
+        if (aa < 45) return 'HOT';
+        if (aa < 70) return 'FLANK';
+        if (aa < 110) return 'BEAM';
+        return 'COLD';
+    }
+
+    function isNearAspectBoundary(aa) {
+        return [45, 70, 110].some(b => Math.abs(aa - b) <= 8);
+    }
+
+    // 8방위 heading 추첨. Aspect on이면 분류 경계 ±8° 회피, 소진 시 null(위치 재생성 필요)
+    function pickHeading(grpXY) {
+        const headings = [0, 45, 90, 135, 180, 225, 270, 315].sort(() => Math.random() - 0.5);
+        for (let hdg of headings) {
+            if (!problemAspectOn) return hdg;
+            if (!isNearAspectBoundary(aspectAngle(grpXY, hdg))) return hdg;
+        }
+        return null;
+    }
+
+    // picture 형태 우선 생성: 형태 추첨 → 배치, 제약 위반 시 재시도
+    function generatePicture(n) {
+        for (let attempt = 0; attempt < 300; attempt++) {
+            const shape = n === 2
+                ? (Math.random() < 0.5 ? 'azimuth' : 'range')
+                : ['wall', 'ladder', 'vic', 'champagne'][Math.floor(Math.random() * 4)];
+
+            // 그룹 무리 중심: bullseye 60~120nm
+            const c = positToXY(Math.random() * 360, 60 + Math.random() * 60);
+            const own = positToXY(myData.brg, myData.rng);
+
+            // 접근 축 = ownship → centroid 단위벡터
+            let ax = c.x - own.x;
+            let ay = c.y - own.y;
+            const axisLen = Math.hypot(ax, ay);
+            if (axisLen < 20) continue;
+            ax /= axisLen;
+            ay /= axisLen;
+
+            // 분리축 스냅: 남북(0,1) vs 동서(1,0) 중 접근 축에 더 수직인 쪽 (동률이면 랜덤)
+            let perp;
+            if (Math.abs(ay) > Math.abs(ax)) perp = { x: 1, y: 0 };
+            else if (Math.abs(ax) > Math.abs(ay)) perp = { x: 0, y: 1 };
+            else perp = Math.random() < 0.5 ? { x: 1, y: 0 } : { x: 0, y: 1 };
+
+            // perp 음수 방향이 북/서 → [앞 라벨, 뒤 라벨]
+            const dirs = perp.y === 1 ? ['north', 'south'] : ['west', 'east'];
+            const sep = () => 20 + Math.random() * 20;
+
+            let pts = [];
+            azimuthSep = 0;
+            if (shape === 'azimuth') {
+                const d = sep();
+                azimuthSep = Math.round(d);
+                pts = [
+                    { x: c.x - perp.x * d / 2, y: c.y - perp.y * d / 2, label: `${dirs[0]} group` },
+                    { x: c.x + perp.x * d / 2, y: c.y + perp.y * d / 2, label: `${dirs[1]} group` }
+                ];
+            } else if (shape === 'range') {
+                const d = sep();
+                pts = [
+                    { x: c.x - ax * d / 2, y: c.y - ay * d / 2, label: 'lead group' },
+                    { x: c.x + ax * d / 2, y: c.y + ay * d / 2, label: 'trail group' }
+                ];
+            } else if (shape === 'wall') {
+                const d = sep();
+                pts = [
+                    { x: c.x - perp.x * d, y: c.y - perp.y * d, label: `${dirs[0]} group` },
+                    { x: c.x, y: c.y, label: 'middle group' },
+                    { x: c.x + perp.x * d, y: c.y + perp.y * d, label: `${dirs[1]} group` }
+                ];
+            } else if (shape === 'ladder') {
+                const d = sep();
+                pts = [
+                    { x: c.x - ax * d, y: c.y - ay * d, label: 'lead group' },
+                    { x: c.x, y: c.y, label: 'middle group' },
+                    { x: c.x + ax * d, y: c.y + ay * d, label: 'trail group' }
+                ];
+            } else if (shape === 'vic') {
+                const d1 = sep();
+                const d2 = sep();
+                pts = [
+                    { x: c.x - ax * d1 / 2, y: c.y - ay * d1 / 2, label: 'lead group' },
+                    { x: c.x + ax * d1 / 2 - perp.x * d2 / 2, y: c.y + ay * d1 / 2 - perp.y * d2 / 2, label: `${dirs[0]} trail group` },
+                    { x: c.x + ax * d1 / 2 + perp.x * d2 / 2, y: c.y + ay * d1 / 2 + perp.y * d2 / 2, label: `${dirs[1]} trail group` }
+                ];
+            } else { // champagne
+                const d1 = sep();
+                const d2 = sep();
+                pts = [
+                    { x: c.x - ax * d1 / 2 - perp.x * d2 / 2, y: c.y - ay * d1 / 2 - perp.y * d2 / 2, label: `${dirs[0]} lead group` },
+                    { x: c.x - ax * d1 / 2 + perp.x * d2 / 2, y: c.y - ay * d1 / 2 + perp.y * d2 / 2, label: `${dirs[1]} lead group` },
+                    { x: c.x + ax * d1 / 2, y: c.y + ay * d1 / 2, label: 'trail group' }
+                ];
+            }
+
+            // 모든 그룹은 30~150nm 링 안에 위치
+            if (pts.some(p => {
+                const r = Math.hypot(p.x, p.y);
+                return r < MIN_RANGE || r > MAX_RANGE;
+            })) continue;
+
+            // heading 추첨 (경계 회피 실패 시 전체 재생성)
+            const groups = [];
+            let ok = true;
+            for (let p of pts) {
+                const hdg = pickHeading(p);
+                if (hdg === null) { ok = false; break; }
+                const posit = xyToPosit(p.x, p.y);
+                groups.push({ label: p.label, x: p.x, y: p.y, brg: posit.brg, rng: posit.rng, alt: randomAlt(), hdg: hdg });
+            }
+            if (!ok) continue;
+
+            pictureShape = shape;
+            return groups;
+        }
+        return null;
+    }
+
+    // 그룹 라벨 축약 표기 (resultBox·aspect 행용)
+    function shortLabel(label) {
+        const map = { north: 'N', south: 'S', west: 'W', east: 'E', lead: 'LD', middle: 'MID', trail: 'TR' };
+        return label.replace(' group', '').split(' ').map(w => map[w] || w).join('.');
+    }
+
+    // === 설정 저장/복원 (localStorage) ===
+    const SETTINGS_KEY = 'bullseyeTrainerSettings';
+
+    function saveSettings() {
+        const settings = {
+            easy: document.getElementById('easyMode').checked,
+            voice: document.getElementById('voiceMode').checked,
+            showBra: document.getElementById('showBraMode').checked,
+            plot: document.getElementById('plotMode').checked,
+            autoRefresh: document.getElementById('autoRefreshMode').checked,
+            refreshInterval: document.getElementById('refreshInterval').value,
+            voiceRate: document.getElementById('voiceRate').value,
+            voiceRateVersion: 3,
+            voiceGender: getVoiceGenderSetting(),
+            voiceGenderVersion: 2,
+            leadTimeEnabled: document.getElementById('leadTimeMode').checked,
+            leadTimeSeconds: document.getElementById('leadTimeSeconds').value,
+            fixOwn: document.getElementById('fixOwnBullseye').checked,
+            answerRange: document.getElementById('answerRangeMode').checked,
+            aspect: document.getElementById('aspectMode').checked,
+            groups: getGroupsSetting(),
+            dark: document.body.classList.contains('dark-mode')
+        };
+        try {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        } catch (error) { /* localStorage 사용 불가 환경 무시 */ }
+    }
+
+    function loadSettings() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null');
+            if (!saved) return;
+
+            const setCheck = (id, val) => {
+                if (typeof val === 'boolean') document.getElementById(id).checked = val;
+            };
+            setCheck('easyMode', saved.easy);
+            setCheck('voiceMode', saved.voice);
+            setCheck('showBraMode', saved.showBra);
+            setCheck('plotMode', saved.plot);
+            setCheck('autoRefreshMode', saved.autoRefresh);
+            setCheck('leadTimeMode', saved.leadTimeEnabled);
+            setCheck('fixOwnBullseye', saved.fixOwn);
+            setCheck('answerRangeMode', saved.answerRange);
+            setCheck('aspectMode', saved.aspect);
+            if (saved.refreshInterval) document.getElementById('refreshInterval').value = saved.refreshInterval;
+            if (saved.leadTimeSeconds && !isNaN(parseInt(saved.leadTimeSeconds, 10))) {
+                document.getElementById('leadTimeSeconds').value = saved.leadTimeSeconds;
+                normalizeLeadTimeSeconds();
+            }
+            if (saved.voiceRateVersion === 3 && saved.voiceRate && !isNaN(parseFloat(saved.voiceRate))) {
+                document.getElementById('voiceRate').value = saved.voiceRate;
+            } else {
+                document.getElementById('voiceRate').value = '1.0';
+            }
+            if (saved.voiceGenderVersion === 2 && ['male', 'female'].includes(saved.voiceGender)) {
+                document.querySelector(`input[name="voiceGender"][value="${saved.voiceGender}"]`).checked = true;
+            } else {
+                document.querySelector('input[name="voiceGender"][value="female"]').checked = true;
+            }
+            if ([1, 2, 3].includes(saved.groups)) {
+                document.querySelector(`input[name="groups"][value="${saved.groups}"]`).checked = true;
+            }
+            if (saved.dark) {
+                document.getElementById('themeToggle').checked = true;
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeIcon').innerText = '☀️';
+            }
+        } catch (error) {
+            console.error("Settings load error:", error);
+        }
+    }
+
+    // === 켜진 기능/그룹 수에 따른 입력 UI 갱신 ===
+    function updateInputUI() {
+        const isPicture = currentGroups > 1;
+        const groupsSetting = getGroupsSetting();
+
+        document.getElementById('bearingRow').style.display = isPicture ? 'none' : 'flex';
+        document.getElementById('rangeRow').style.display =
+            (!isPicture && document.getElementById('answerRangeMode').checked) ? 'flex' : 'none';
+
+        // altitude 질문 라벨 (picture 모드는 지목된 그룹 명시)
+        const altLabel = document.getElementById('altLabel');
+        if (isPicture && groupsData.length > 0) {
+            const groupName = capitalize(groupsData[altQuestionIdx].label.replace(' group', ''));
+            altLabel.innerText = `Enter the altitude of ${groupName} (x1,000 ft)`;
+        } else {
+            altLabel.innerText = 'Enter the altitude of the target (x1,000 ft)';
+        }
+
+        buildAspectArea();
+
+        // Groups>=2에서는 Answer Range·Easy를 dim 처리하고 Manual Plotting을 강제로 해제
+        const dimForPicture = groupsSetting > 1;
+        ['answerRangeMode', 'easyMode', 'plotMode'].forEach(id => {
+            const el = document.getElementById(id);
+            el.disabled = dimForPicture;
+            el.parentElement.style.opacity = dimForPicture ? '0.4' : '1';
+        });
+        const plotMode = document.getElementById('plotMode');
+        if (dimForPicture && plotMode.checked) {
+            plotMode.checked = false;
+            userMyPos = null;
+            userTgtPos = null;
+            if (themeColors.outerRing) drawRadar();
+        }
+    }
+
+    // Aspect 답변 버튼 행 생성 (그룹 수만큼)
+    function buildAspectArea() {
+        const area = document.getElementById('aspectArea');
+        area.innerHTML = '';
+        if (!problemAspectOn) {
+            area.style.display = 'none';
+            userAspectAnswers = [];
+            return;
+        }
+        area.style.display = 'block';
+
+        const count = currentGroups === 1 ? 1 : Math.max(groupsData.length, 1);
+        userAspectAnswers = new Array(count).fill(null);
+
+        const instruction = document.createElement('div');
+        instruction.className = 'answer-instruction';
+        instruction.innerText = count === 1
+            ? 'Choose the aspect of the target'
+            : 'Choose the aspect of each group';
+        area.appendChild(instruction);
+
+        for (let i = 0; i < count; i++) {
+            const row = document.createElement('div');
+            row.className = 'aspect-row';
+            if (count > 1) {
+                const lab = document.createElement('span');
+                lab.className = 'aspect-label';
+                lab.innerText = groupsData[i] ? shortLabel(groupsData[i].label) : `G${i + 1}`;
+                row.appendChild(lab);
+            }
+            ['HOT', 'FLANK', 'BEAM', 'COLD'].forEach(cls => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'aspect-btn';
+                btn.innerText = cls;
+                btn.addEventListener('click', () => {
+                    userAspectAnswers[i] = cls;
+                    row.querySelectorAll('.aspect-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                });
+                row.appendChild(btn);
+            });
+            area.appendChild(row);
+        }
     }
 
     function updateScoreDisplay() {
@@ -698,46 +1978,225 @@ You can manually mark the estimated positions on the concentric circles. The fir
     }
 
     function checkAnswer() {
-        if (isAnimating) return;
+        if (isAnimating || isTargetCallPending) return;
 
-        const inputVal = parseInt(document.getElementById('inputBearing').value, 10);
-        if (isNaN(inputVal)) {
-            alert("Bearing 값을 입력해주세요.");
-            return;
+        itemResults = [];
+
+        if (currentGroups === 1) {
+            if (tgtData.rng === 0 && tgtData.brg === 0) return;
+
+            const bearingVal = parseInt(document.getElementById('inputBearing').value, 10);
+            const altVal = parseInt(document.getElementById('inputAlt').value, 10);
+            if (isNaN(bearingVal) || isNaN(altVal)) {
+                alert("Bearing과 Alt 값을 입력해주세요.");
+                return;
+            }
+            const rangeOn = document.getElementById('answerRangeMode').checked;
+            let rangeVal = null;
+            if (rangeOn) {
+                rangeVal = parseInt(document.getElementById('inputRange').value, 10);
+                if (isNaN(rangeVal)) {
+                    alert("Range 값을 입력해주세요.");
+                    return;
+                }
+            }
+            if (problemAspectOn && !userAspectAnswers[0]) {
+                alert("Aspect를 선택해주세요.");
+                return;
+            }
+
+            let diff = Math.abs(bearingVal - trueBearing) % 360;
+            let finalDiff = diff > 180 ? 360 - diff : diff;
+            itemResults.push({
+                type: 'bearing',
+                label: 'Bearing',
+                ok: finalDiff <= 20,
+                userAns: `${bearingVal.toString().padStart(3, '0')}°`,
+                correctAns: `${trueBearing.toString().padStart(3, '0')}°`
+            });
+            if (rangeOn) {
+                itemResults.push({
+                    type: 'range',
+                    label: 'Range',
+                    ok: Math.abs(rangeVal - trueRange) <= 10,
+                    userAns: `${rangeVal} nm`,
+                    correctAns: `${trueRange} nm`
+                });
+            }
+            itemResults.push({
+                type: 'altitude',
+                label: 'Altitude',
+                ok: altVal === tgtData.alt / 1000,
+                userAns: `${(altVal * 1000).toLocaleString('en-US')} ft`,
+                correctAns: `${tgtData.alt.toLocaleString('en-US')} ft`
+            });
+            if (problemAspectOn) {
+                const actual = classifyAspect(aspectAngle(positToXY(tgtData.brg, tgtData.rng), tgtData.hdg));
+                itemResults.push({
+                    type: 'aspect',
+                    label: 'Aspect',
+                    ok: userAspectAnswers[0] === actual,
+                    userAns: userAspectAnswers[0],
+                    correctAns: actual
+                });
+            }
+        } else {
+            if (groupsData.length === 0) return;
+
+            if (userClicks.length < groupsData.length + 1) {
+                alert(`캔버스에 위치를 모두 찍어주세요. (내 기체 1 + 그룹 ${groupsData.length})`);
+                return;
+            }
+            const altVal = parseInt(document.getElementById('inputAlt').value, 10);
+            if (isNaN(altVal)) {
+                alert("Alt 값을 입력해주세요.");
+                return;
+            }
+            if (problemAspectOn && userAspectAnswers.some(a => !a)) {
+                alert("모든 그룹의 Aspect를 선택해주세요.");
+                return;
+            }
+
+            // 위치: 클릭 좌표와 실제 좌표 거리 15nm 이내 (ownship 포함 각각 1항목)
+            const tolPx = 15 * SCALE;
+            const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+            const ownXY = positToXY(myData.brg, myData.rng);
+            const ownPix = { x: CENTER + ownXY.x * SCALE, y: CENTER + ownXY.y * SCALE };
+            itemResults.push({
+                type: 'position',
+                label: 'Position',
+                groupIndex: -1,
+                ok: dist(userClicks[0], ownPix) <= tolPx,
+                userAns: '—',
+                correctAns: '—'
+            });
+            groupsData.forEach((g, i) => {
+                const gPix = { x: CENTER + g.x * SCALE, y: CENTER + g.y * SCALE };
+                itemResults.push({
+                    type: 'position',
+                    label: 'Position',
+                    groupIndex: i,
+                    ok: dist(userClicks[i + 1], gPix) <= tolPx,
+                    userAns: '—',
+                    correctAns: '—'
+                });
+                if (problemAspectOn) {
+                    const actual = classifyAspect(aspectAngle({ x: g.x, y: g.y }, g.hdg));
+                    itemResults.push({
+                        type: 'aspect',
+                        label: 'Aspect',
+                        groupIndex: i,
+                        ok: userAspectAnswers[i] === actual,
+                        userAns: userAspectAnswers[i],
+                        correctAns: actual
+                    });
+                }
+                if (i === altQuestionIdx) {
+                    itemResults.push({
+                        type: 'altitude',
+                        label: 'Altitude',
+                        groupIndex: i,
+                        ok: altVal === g.alt / 1000,
+                        userAns: `${(altVal * 1000).toLocaleString('en-US')} ft`,
+                        correctAns: `${g.alt.toLocaleString('en-US')} ft`
+                    });
+                }
+            });
         }
 
         isChecked = true;
+        isCorrect = itemResults.every(r => r.ok);
 
-        let diff = Math.abs(inputVal - trueBearing) % 360;
-        let finalDiff = diff > 180 ? 360 - diff : diff;
+        // 항목 단위 집계 (같은 문제 재제출 시 이중 집계 금지)
+        if (!isCurrentProblemScored) {
+            itemResults.forEach(r => {
+                totalAttempts++;
+                if (r.ok) correctAnswers++;
+            });
+            isCurrentProblemScored = true;
+        }
 
         const resultBox = document.getElementById('resultBox');
         resultBox.style.display = 'block';
+        renderResultTable(itemResults);
+        document.getElementById('answerFieldset').hidden = true;
 
-        document.getElementById('tgtPosit').innerText = `${tgtData.brg}° | ${tgtData.rng} nm`;
-
-        if (finalDiff <= 20) {
-            isCorrect = true;
-            resultBox.innerText = `Good! ${trueBearing}° (±20°)`;
-            resultBox.className = 'correct';
-            if (!isCurrentProblemScored) {
-                correctAnswers++;
-                totalAttempts++;
-                isCurrentProblemScored = true;
-            }
-        } else {
-            isCorrect = false;
-            resultBox.innerText = `Incorrect! True Bearing: ${trueBearing}°`;
-            resultBox.className = 'incorrect';
-            if (!isCurrentProblemScored) {
-                totalAttempts++;
-                isCurrentProblemScored = true;
-            }
-        }
-
+        updateTargetPositUI();
         updateScoreDisplay();
         startAnimateRadar();
         startCountdown();
+    }
+
+    function renderResultTable(results) {
+        const resultBox = document.getElementById('resultBox');
+        const table = document.createElement('table');
+        table.className = 'data-table result-table';
+
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        ['Item', 'Result', 'Your answer', 'Correct answer'].forEach(label => {
+            const th = document.createElement('th');
+            th.textContent = label;
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        const appendResultRow = result => {
+            const row = document.createElement('tr');
+            const labelCell = document.createElement('td');
+            labelCell.textContent = result.label;
+
+            const statusCell = document.createElement('td');
+            const status = document.createElement('span');
+            status.className = `result-status ${result.ok ? 'result-correct' : 'result-incorrect'}`;
+            status.textContent = result.ok ? '●' : '✕';
+            status.setAttribute('aria-label', result.ok ? 'Correct' : 'Incorrect');
+            statusCell.appendChild(status);
+
+            const userAnswerCell = document.createElement('td');
+            userAnswerCell.textContent = result.userAns || '—';
+            const correctAnswerCell = document.createElement('td');
+            correctAnswerCell.textContent = result.correctAns || '—';
+            row.append(labelCell, statusCell, userAnswerCell, correctAnswerCell);
+            tbody.appendChild(row);
+        };
+
+        const appendGroupHeading = (label, number = null, isOwnship = false) => {
+            const row = document.createElement('tr');
+            row.className = `result-group-heading${isOwnship ? ' ownship-heading' : ''}`;
+            const cell = document.createElement('th');
+            cell.colSpan = 4;
+            cell.scope = 'rowgroup';
+            const groupLabel = document.createElement('span');
+            groupLabel.className = 'group-label';
+            if (number !== null) {
+                const badge = document.createElement('span');
+                badge.className = 'group-number-badge';
+                badge.textContent = number;
+                groupLabel.appendChild(badge);
+            }
+            const text = document.createElement('span');
+            text.textContent = label;
+            groupLabel.appendChild(text);
+            cell.appendChild(groupLabel);
+            row.appendChild(cell);
+            tbody.appendChild(row);
+        };
+
+        if (currentGroups > 1) {
+            appendGroupHeading('Ownship', null, true);
+            results.filter(result => result.groupIndex === -1).forEach(appendResultRow);
+            groupsData.forEach((group, index) => {
+                appendGroupHeading(shortLabel(group.label), index + 1);
+                results.filter(result => result.groupIndex === index).forEach(appendResultRow);
+            });
+        } else {
+            results.forEach(appendResultRow);
+        }
+        table.appendChild(tbody);
+        resultBox.replaceChildren(table);
     }
 
     function startCountdown() {
@@ -904,6 +2363,12 @@ You can manually mark the estimated positions on the concentric circles. The fir
         ctx.fillStyle = '#e74c3c';
         ctx.fill();
 
+        // picture(Groups>=2) 모드는 별도 오버레이로 그린다
+        if (currentGroups > 1) {
+            drawPictureOverlay();
+            return;
+        }
+
         const easyMode = document.getElementById('easyMode').checked;
 
         const myRad = myData.brg * (Math.PI / 180);
@@ -991,6 +2456,112 @@ You can manually mark the estimated positions on the concentric circles. The fir
             ctx.moveTo(myX, myY);
             ctx.lineTo(lerp(myX, tgtX, progress), lerp(myY, tgtY, progress));
             ctx.stroke();
+
+            if (problemAspectOn) drawTrackArrow(tgtX, tgtY, tgtData.hdg);
+        }
+    }
+
+    // 화살표 꼬리를 target 마커의 진행 방향 쪽 바깥 가장자리에서 시작
+    function drawTrackArrow(x, y, heading) {
+        const rad = heading * (Math.PI / 180);
+        const ux = Math.sin(rad);
+        const uy = -Math.cos(rad);
+        const markerOuterEdge = 7;
+        const arrowLength = 26;
+        const startX = x + ux * markerOuterEdge;
+        const startY = y + uy * markerOuterEdge;
+        const endX = startX + ux * arrowLength;
+        const endY = startY + uy * arrowLength;
+        const angle = Math.atan2(endY - startY, endX - startX);
+        const headSize = 7;
+
+        ctx.save();
+        ctx.strokeStyle = '#f39c12';
+        ctx.fillStyle = '#f39c12';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(endX, endY);
+        ctx.lineTo(endX - headSize * Math.cos(angle - Math.PI / 6), endY - headSize * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(endX - headSize * Math.cos(angle + Math.PI / 6), endY - headSize * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    // picture 모드 오버레이: 사용자 클릭 마커 + 제출 후 실제 위치·허용 반경(15nm) 원
+    function drawPictureOverlay() {
+        userClicks.forEach((p, i) => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 7, 0, 2 * Math.PI);
+            ctx.fillStyle = i === 0 ? '#3498db' : '#e74c3c';
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            if (i > 0) {
+                ctx.fillStyle = '#fff';
+                ctx.font = "bold 9px 'Segoe UI', Arial, sans-serif";
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(String(i), p.x, p.y);
+            }
+        });
+
+        if (!isChecked || groupsData.length === 0) return;
+
+        const tolPx = 15 * SCALE;
+        const ownXY = positToXY(myData.brg, myData.rng);
+        const ownshipPositionResult = itemResults.find(result => result.type === 'position' && result.groupIndex === -1);
+        const points = [{
+            x: CENTER + ownXY.x * SCALE,
+            y: CENTER + ownXY.y * SCALE,
+            color: '#3498db',
+            ok: ownshipPositionResult && ownshipPositionResult.ok
+        }];
+        groupsData.forEach((g, i) => {
+            const positionResult = itemResults.find(result => result.type === 'position' && result.groupIndex === i);
+            points.push({
+                x: CENTER + g.x * SCALE,
+                y: CENTER + g.y * SCALE,
+                color: '#e74c3c',
+                ok: positionResult && positionResult.ok,
+                num: i + 1
+            });
+        });
+
+        points.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, tolPx, 0, 2 * Math.PI);
+            ctx.strokeStyle = p.ok ? '#2ecc71' : '#e74c3c';
+            ctx.setLineDash([4, 4]);
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+
+            if (p.num) {
+                ctx.fillStyle = p.ok ? '#2ecc71' : '#e74c3c';
+                ctx.font = "bold 11px 'Segoe UI', Arial, sans-serif";
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(String(p.num), p.x + 10, p.y - 10);
+            }
+        });
+
+        if (problemAspectOn) {
+            groupsData.forEach(g => {
+                drawTrackArrow(CENTER + g.x * SCALE, CENTER + g.y * SCALE, g.hdg);
+            });
         }
     }
 
