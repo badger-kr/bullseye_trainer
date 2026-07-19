@@ -229,6 +229,15 @@
             border-color: var(--muted-color);
             color: var(--muted-color);
         }
+        .radar-coordinate-toggle::before {
+            content: '⏻';
+            margin-right: 5px;
+            color: #f1c40f;
+            font-size: 14px;
+        }
+        .radar-coordinate-toggle[aria-pressed="false"]::before {
+            color: var(--muted-color);
+        }
         .call-countdown {
             position: absolute;
             top: 50%;
@@ -1867,7 +1876,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         let angleDeg = angleRad * (180 / Math.PI);
 
         if (angleDeg < 0) angleDeg += 360;
-        trueBearing = Math.round(angleDeg);
+        trueBearing = Math.round(angleDeg) % 360;
         trueRange = Math.round(Math.hypot(dx, dy));
     }
 
@@ -2220,7 +2229,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
             let finalDiff = diff > 180 ? 360 - diff : diff;
             itemResults.push({
                 type: 'bearing',
-                label: 'Bearing',
+                label: 'Bearing to Target',
                 ok: finalDiff <= 20,
                 userAns: `${bearingVal.toString().padStart(3, '0')}°`,
                 correctAns: `${trueBearing.toString().padStart(3, '0')}°`
@@ -2679,6 +2688,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
             ctx.stroke();
 
             if (problemAspectOn) drawTrackArrow(tgtX, tgtY, tgtData.hdg);
+            drawBearingToTargetOverlay(myX, myY, tgtX, tgtY, trueBearing);
         }
 
         drawRadarPointerOverlay();
@@ -2697,6 +2707,97 @@ For one group, enter the bearing from ownship to target and the target altitude,
         ctx.moveTo(radarPointerPos.x, radarPointerPos.y - 12);
         ctx.lineTo(radarPointerPos.x, radarPointerPos.y + 12);
         ctx.stroke();
+        ctx.restore();
+    }
+
+    // Groups 1 정답에서 Ownship 기준 Bearing to Target을 시각적으로 설명
+    function drawBearingToTargetOverlay(myX, myY, tgtX, tgtY, bearing) {
+        const overlayColor = '#2ecc71';
+        const ownshipColor = '#3498db';
+        const arcRadius = 22;
+        const northRayLength = 31;
+        const crossSize = 7;
+        const startAngle = -Math.PI / 2;
+        const normalizedBearing = ((bearing % 360) + 360) % 360;
+        const endAngle = startAngle + normalizedBearing * (Math.PI / 180);
+
+        ctx.save();
+
+        ctx.strokeStyle = ownshipColor;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(myX - crossSize, myY);
+        ctx.lineTo(myX + crossSize, myY);
+        ctx.moveTo(myX, myY - crossSize);
+        ctx.lineTo(myX, myY + crossSize);
+        ctx.stroke();
+
+        ctx.strokeStyle = themeColors.textBearing;
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([3, 2]);
+        ctx.beginPath();
+        ctx.moveTo(myX, myY - crossSize - 2);
+        ctx.lineTo(myX, myY - northRayLength);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = themeColors.textBearing;
+        ctx.font = "bold 9px 'Segoe UI', Arial, sans-serif";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('N / 000°', myX, Math.max(7, myY - northRayLength - 6));
+
+        if (normalizedBearing > 0) {
+            ctx.strokeStyle = overlayColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(myX, myY, arcRadius, startAngle, endAngle, false);
+            ctx.stroke();
+
+            const arrowX = myX + arcRadius * Math.cos(endAngle);
+            const arrowY = myY + arcRadius * Math.sin(endAngle);
+            const tangentAngle = endAngle + Math.PI / 2;
+            const arrowSize = 5;
+            ctx.fillStyle = overlayColor;
+            ctx.beginPath();
+            ctx.moveTo(arrowX, arrowY);
+            ctx.lineTo(
+                arrowX - arrowSize * Math.cos(tangentAngle - Math.PI / 6),
+                arrowY - arrowSize * Math.sin(tangentAngle - Math.PI / 6)
+            );
+            ctx.lineTo(
+                arrowX - arrowSize * Math.cos(tangentAngle + Math.PI / 6),
+                arrowY - arrowSize * Math.sin(tangentAngle + Math.PI / 6)
+            );
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        const lineDx = tgtX - myX;
+        const lineDy = tgtY - myY;
+        const lineLength = Math.hypot(lineDx, lineDy);
+        const offsetX = lineLength > 0 ? (-lineDy / lineLength) * 11 : 0;
+        const offsetY = lineLength > 0 ? (lineDx / lineLength) * 11 : 0;
+        const bearingText = `BRG ${bearing.toString().padStart(3, '0')}°`;
+        ctx.font = "bold 10px 'Segoe UI', Arial, sans-serif";
+        const labelWidth = ctx.measureText(bearingText).width + 10;
+        const labelHeight = 18;
+        const desiredX = (myX + tgtX) / 2 + offsetX;
+        const desiredY = (myY + tgtY) / 2 + offsetY;
+        const labelX = Math.max(labelWidth / 2 + 2, Math.min(canvas.width - labelWidth / 2 - 2, desiredX));
+        const labelY = Math.max(labelHeight / 2 + 2, Math.min(canvas.height - labelHeight / 2 - 2, desiredY));
+
+        ctx.fillStyle = 'rgba(10, 24, 38, 0.86)';
+        ctx.fillRect(labelX - labelWidth / 2, labelY - labelHeight / 2, labelWidth, labelHeight);
+        ctx.strokeStyle = overlayColor;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(labelX - labelWidth / 2, labelY - labelHeight / 2, labelWidth, labelHeight);
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(bearingText, labelX, labelY);
+
         ctx.restore();
     }
 
