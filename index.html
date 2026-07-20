@@ -1249,6 +1249,11 @@ For one group, enter the bearing from ownship to target and the target altitude,
     });
 
     document.addEventListener('pointerdown', function(event) {
+        if (!helpTooltip.hidden
+            && !helpTooltip.contains(event.target)
+            && (!activeHelpIcon || !activeHelpIcon.contains(event.target))) {
+            hideSettingsHelp();
+        }
         if (!settingsPanel.hidden && !settingsPanel.contains(event.target) && !settingsToggle.contains(event.target)) {
             setSettingsOpen(false);
         }
