@@ -202,6 +202,7 @@
         }
         .radar-column {
             width: 400px;
+            min-width: min(228px, 100%);
             max-width: 100%;
             display: flex;
             flex-direction: column;
@@ -221,6 +222,7 @@
         }
         .radar-coordinate-toggle {
             box-sizing: border-box;
+            flex: 0 0 auto;
             width: auto;
             min-width: 176px;
             height: 25px;
@@ -231,6 +233,7 @@
             background: rgba(10, 24, 38, 0.86);
             color: #fff;
             font: bold 12px 'Segoe UI', Arial, sans-serif;
+            white-space: nowrap;
             cursor: pointer;
             touch-action: manipulation;
         }
@@ -264,7 +267,7 @@
         .radar-undo-button:disabled {
             border-color: var(--muted-color);
             color: var(--muted-color);
-            cursor: not-allowed;
+            cursor: default;
             opacity: 0.55;
         }
         .call-countdown {
@@ -998,7 +1001,7 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
             <div class="radar-stage">
                 <div class="radar-toolbar">
                     <button type="button" id="radarCoordinateToggle" class="radar-coordinate-toggle" aria-pressed="true" aria-label="Turn Bullseye coordinate view off">BULLS ---° / -- nm</button>
-                    <button type="button" id="btnUndoPlot" class="radar-undo-button" title="Undo the last plot" aria-label="Undo the last plot" disabled>↶</button>
+                    <button type="button" id="btnUndoPlot" class="radar-undo-button" title="Undo the last plot" aria-label="Undo the last plot" disabled>↺</button>
                 </div>
                 <canvas id="radarCanvas" width="400" height="400"></canvas>
                 <div id="callCountdown" class="call-countdown" aria-live="assertive" hidden></div>
@@ -2739,8 +2742,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
 
     // Groups 1 정답에서 실제 Ownship 위치를 기준으로 Bearing to Target을 설명
     function drawBearingToTargetOverlay(myX, myY, tgtX, tgtY, bearing) {
-        const overlayColor = '#2ecc71';
-        const ownshipColor = '#3498db';
+        const bearingColor = '#3498db';
         const crossSize = 7;
         const startAngle = -Math.PI / 2;
         const normalizedBearing = ((bearing % 360) + 360) % 360;
@@ -2758,7 +2760,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         ctx.save();
         ctx.setLineDash([]);
 
-        ctx.strokeStyle = ownshipColor;
+        ctx.strokeStyle = bearingColor;
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(myX - crossSize, myY);
@@ -2777,7 +2779,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         ctx.setLineDash([]);
 
         if (normalizedBearing > 0) {
-            ctx.strokeStyle = overlayColor;
+            ctx.strokeStyle = bearingColor;
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.arc(myX, myY, arcRadius, startAngle, endAngle, false);
@@ -2786,8 +2788,8 @@ For one group, enter the bearing from ownship to target and the target altitude,
             const arrowX = myX + arcRadius * Math.cos(endAngle);
             const arrowY = myY + arcRadius * Math.sin(endAngle);
             const tangentAngle = endAngle + Math.PI / 2;
-            const arrowSize = 5;
-            ctx.fillStyle = overlayColor;
+            const arrowSize = 8;
+            ctx.fillStyle = bearingColor;
             ctx.beginPath();
             ctx.moveTo(arrowX, arrowY);
             ctx.lineTo(
@@ -2867,23 +2869,6 @@ For one group, enter the bearing from ownship to target and the target altitude,
             "bold 9px 'Segoe UI', Arial, sans-serif"
         );
 
-        const targetUx = targetDistance > 0 ? (tgtX - myX) / targetDistance : 0;
-        const targetUy = targetDistance > 0 ? (tgtY - myY) / targetDistance : -1;
-        const labelDistance = arcRadius + 21;
-        drawOverlayLabel(
-            'OWN',
-            [
-                {x: myX - targetUx * labelDistance, y: myY - targetUy * labelDistance},
-                {x: myX - labelDistance, y: myY},
-                {x: myX + labelDistance, y: myY},
-                {x: myX, y: myY + labelDistance},
-                {x: myX, y: myY - labelDistance}
-            ],
-            '#fff',
-            ownshipColor,
-            "bold 9px 'Segoe UI', Arial, sans-serif"
-        );
-
         const midAngle = startAngle + normalizedBearing * (Math.PI / 360);
         const bearingLabelDistance = arcRadius + 25;
         drawOverlayLabel(
@@ -2905,7 +2890,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
                 {x: myX - bearingLabelDistance, y: myY}
             ],
             '#fff',
-            overlayColor,
+            bearingColor,
             "bold 10px 'Segoe UI', Arial, sans-serif"
         );
 
@@ -2924,7 +2909,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         const endX = startX + ux * arrowLength;
         const endY = startY + uy * arrowLength;
         const angle = Math.atan2(endY - startY, endX - startX);
-        const headSize = 7;
+        const headSize = 10;
 
         ctx.save();
         ctx.strokeStyle = '#f39c12';
