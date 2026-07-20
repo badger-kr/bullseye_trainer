@@ -596,10 +596,16 @@
         .target-table th:nth-child(3) { width: 27%; }
         .target-table th:nth-child(4) { width: 24%; }
         .target-table th:nth-child(5) { width: 15%; }
+        .target-table th:nth-child(2),
+        .target-table .position-cell {
+            padding-left: 6px;
+            padding-right: 2px;
+            text-align: left;
+        }
         .group-label {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             gap: 5px;
         }
         .group-number-badge {
@@ -998,7 +1004,7 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
             <div class="target-table-wrap" id="tgtPosit" aria-live="polite">
                 <table class="data-table target-table">
                     <thead><tr><th>Formation</th><th>Position</th><th>Bullseye</th><th>Altitude</th><th>Track</th></tr></thead>
-                    <tbody><tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr></tbody>
+                    <tbody><tr><td>—</td><td class="position-cell">—</td><td>—</td><td>—</td><td>—</td></tr></tbody>
                 </table>
             </div>
         </fieldset>
@@ -1746,6 +1752,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
                 tr.appendChild(formationCell);
             }
             const positionCell = document.createElement('td');
+            positionCell.className = 'position-cell';
             const positionLabel = document.createElement('span');
             positionLabel.className = 'group-label';
             if (row.number) {
