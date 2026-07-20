@@ -596,7 +596,9 @@
         .target-table th:nth-child(3) { width: 27%; }
         .target-table th:nth-child(4) { width: 24%; }
         .target-table th:nth-child(5) { width: 15%; }
-        .target-table th:nth-child(2),
+        .target-table th:nth-child(2) {
+            text-align: center;
+        }
         .target-table .position-cell {
             padding-left: 6px;
             padding-right: 2px;
@@ -1003,7 +1005,7 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
             <div class="target-section-label">Target Bullseye</div>
             <div class="target-table-wrap" id="tgtPosit" aria-live="polite">
                 <table class="data-table target-table">
-                    <thead><tr><th>Formation</th><th>Position</th><th>Bullseye</th><th>Altitude</th><th>Track</th></tr></thead>
+                    <thead><tr><th>Formation</th><th>Posit</th><th>Bullseye</th><th>Altitude</th><th>Track</th></tr></thead>
                     <tbody><tr><td>—</td><td class="position-cell">—</td><td>—</td><td>—</td><td>—</td></tr></tbody>
                 </table>
             </div>
@@ -1733,7 +1735,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
 
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
-        ['Formation', 'Position', 'Bullseye', 'Altitude', 'Track'].forEach(label => {
+        ['Formation', 'Posit', 'Bullseye', 'Altitude', 'Track'].forEach(label => {
             const th = document.createElement('th');
             th.textContent = label;
             headerRow.appendChild(th);
