@@ -30,6 +30,7 @@
             --bra-highlight-range: #ff9999;
             --bra-text-range: #c0392b;
             --bra-text-bearing: #2c3e50;
+            --bearing-label-text: #0b4f7c;
             --bra-outer-ring: #000000;
             --bra-bullseye: rgba(0, 0, 0, 0.5);
         }
@@ -51,6 +52,7 @@
             --bra-highlight-range: rgba(255, 118, 117, 0.8);
             --bra-text-range: #ff7675;
             --bra-text-bearing: #ffffff;
+            --bearing-label-text: #8ed8ff;
             --bra-outer-ring: rgba(255, 255, 255, 0.7);
             --bra-bullseye: rgba(255, 255, 255, 0.6);
         }
@@ -269,6 +271,13 @@
             color: var(--muted-color);
             cursor: default;
             opacity: 0.55;
+        }
+        .radar-undo-button svg {
+            display: block;
+            width: 18px;
+            height: 18px;
+            margin: auto;
+            fill: currentColor;
         }
         .call-countdown {
             position: absolute;
@@ -1001,7 +1010,11 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
             <div class="radar-stage">
                 <div class="radar-toolbar">
                     <button type="button" id="radarCoordinateToggle" class="radar-coordinate-toggle" aria-pressed="true" aria-label="Turn Bullseye coordinate view off">BULLS ---° / -- nm</button>
-                    <button type="button" id="btnUndoPlot" class="radar-undo-button" title="Undo the last plot" aria-label="Undo the last plot" disabled>↺</button>
+                    <button type="button" id="btnUndoPlot" class="radar-undo-button" title="Undo the last plot" aria-label="Undo the last plot" disabled>
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M8.5 4.2V1.3L1.4 8.1l7.1 6.8v-3.2c5.4 0 9.2 2.1 12.1 7.1-.5-8.2-4.4-13.3-12.1-14.6Z"></path>
+                        </svg>
+                    </button>
                 </div>
                 <canvas id="radarCanvas" width="400" height="400"></canvas>
                 <div id="callCountdown" class="call-countdown" aria-live="assertive" hidden></div>
@@ -1106,6 +1119,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         themeColors.highlightRange = rootStyle.getPropertyValue('--bra-highlight-range').trim() || '#ff9999';
         themeColors.textRange = rootStyle.getPropertyValue('--bra-text-range').trim() || '#c0392b';
         themeColors.textBearing = rootStyle.getPropertyValue('--bra-text-bearing').trim() || '#2c3e50';
+        themeColors.bearingLabelText = rootStyle.getPropertyValue('--bearing-label-text').trim() || '#0b4f7c';
         themeColors.outerRing = rootStyle.getPropertyValue('--bra-outer-ring').trim() || '#000000';
         themeColors.bullseye = rootStyle.getPropertyValue('--bra-bullseye').trim() || 'rgba(0,0,0,0.5)';
     }
@@ -2749,7 +2763,6 @@ For one group, enter the bearing from ownship to target and the target altitude,
         const endAngle = startAngle + normalizedBearing * (Math.PI / 180);
         const targetDistance = Math.hypot(tgtX - myX, tgtY - myY);
         const arcRadius = Math.min(22, Math.max(10, targetDistance * 0.4));
-        const northRayLength = Math.min(28, Math.max(12, myY - 3));
         const occupied = [{
             left: tgtX - 8,
             right: tgtX + 8,
@@ -2768,15 +2781,6 @@ For one group, enter the bearing from ownship to target and the target altitude,
         ctx.moveTo(myX, myY - crossSize);
         ctx.lineTo(myX, myY + crossSize);
         ctx.stroke();
-
-        ctx.strokeStyle = themeColors.textBearing;
-        ctx.lineWidth = 1.2;
-        ctx.setLineDash([3, 2]);
-        ctx.beginPath();
-        ctx.moveTo(myX, myY - crossSize - 2);
-        ctx.lineTo(myX, myY - northRayLength);
-        ctx.stroke();
-        ctx.setLineDash([]);
 
         if (normalizedBearing > 0) {
             ctx.strokeStyle = bearingColor;
@@ -2804,7 +2808,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
             ctx.fill();
         }
 
-        function drawOverlayLabel(text, candidates, textColor, borderColor, font) {
+        function drawOverlayLabel(text, candidates, textColor, font) {
             ctx.font = font;
             const width = ctx.measureText(text).width + 10;
             const height = 17;
@@ -2846,28 +2850,11 @@ For one group, enter the bearing from ownship to target and the target altitude,
                 }, {box: boxes[0], score: Infinity}).box;
             occupied.push(box);
 
-            ctx.fillStyle = 'rgba(10, 24, 38, 0.88)';
-            ctx.fillRect(box.left, box.top, width, height);
-            ctx.strokeStyle = borderColor;
-            ctx.lineWidth = 1;
-            ctx.strokeRect(box.left, box.top, width, height);
             ctx.fillStyle = textColor;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(text, box.centerX, box.centerY);
         }
-
-        drawOverlayLabel(
-            'N / 000°',
-            [
-                {x: myX, y: myY - northRayLength - 9},
-                {x: myX + 39, y: myY - northRayLength / 2},
-                {x: myX - 39, y: myY - northRayLength / 2}
-            ],
-            '#fff',
-            themeColors.textBearing,
-            "bold 9px 'Segoe UI', Arial, sans-serif"
-        );
 
         const midAngle = startAngle + normalizedBearing * (Math.PI / 360);
         const bearingLabelDistance = arcRadius + 25;
@@ -2889,8 +2876,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
                 {x: myX + bearingLabelDistance, y: myY},
                 {x: myX - bearingLabelDistance, y: myY}
             ],
-            '#fff',
-            bearingColor,
+            themeColors.bearingLabelText,
             "bold 10px 'Segoe UI', Arial, sans-serif"
         );
 
