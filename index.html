@@ -7,7 +7,7 @@
     <meta name="keywords" content="DCS World, Falcon BMS, Bullseye, Bullseye Trainer, BRA calculation, Flight Sim, VRAF, Badger, Situational Awareness">
     <meta name="author" content="Badger">
 
-    <meta property="og:title" content="DCS Bullseye Trainer v0.2 by Badger">
+    <meta property="og:title" content="DCS Bullseye Trainer v0.21 by Badger">
     <meta property="og:description" content="Sharpen your tactical skills with this interactive Bullseye training tool.">
     <meta property="og:image" content="https://badger-kr.github.io/bullseye_trainer/preview.png"> <meta property="og:url" content="https://badger-kr.github.io/bullseye_trainer/">
     <title>Bullseye Trainer</title>
@@ -200,23 +200,33 @@
             justify-content: center;
             align-items: center;
         }
-        .radar-stage {
-            position: relative;
+        .radar-column {
             width: 400px;
             max-width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
-        .radar-coordinate-toggle {
+        .radar-stage {
+            position: relative;
+            width: 100%;
+        }
+        .radar-toolbar {
             position: absolute;
             top: 0;
             left: 50%;
             z-index: 4;
+            display: flex;
+            gap: 4px;
+            transform: translateX(-50%);
+        }
+        .radar-coordinate-toggle {
             box-sizing: border-box;
             width: auto;
             min-width: 176px;
             height: 25px;
             margin: 0;
             padding: 0 8px;
-            transform: translateX(-50%);
             border: 1px solid #f1c40f;
             border-radius: 2px;
             background: rgba(10, 24, 38, 0.86);
@@ -237,6 +247,41 @@
         }
         .radar-coordinate-toggle[aria-pressed="false"]::before {
             color: var(--muted-color);
+        }
+        .radar-undo-button {
+            box-sizing: border-box;
+            width: 29px;
+            height: 25px;
+            margin: 0;
+            padding: 0;
+            border: 1px solid #3498db;
+            border-radius: 2px;
+            background: rgba(10, 24, 38, 0.86);
+            color: #fff;
+            font: bold 18px/1 'Segoe UI', Arial, sans-serif;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        .radar-undo-button:disabled {
+            border-color: var(--muted-color);
+            color: var(--muted-color);
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+        .bearing-inset {
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 86px;
+            border: 1px solid rgba(46, 204, 113, 0.55);
+            border-radius: 6px;
+            background: rgba(10, 24, 38, 0.92);
+            overflow: hidden;
+        }
+        .bearing-inset[hidden] { display: none; }
+        .bearing-inset svg {
+            display: block;
+            width: 100%;
+            height: auto;
         }
         .call-countdown {
             position: absolute;
@@ -803,7 +848,7 @@
             .data-table th,
             .data-table td { padding: 4px 2px; }
             #resultBox { padding: 4px; }
-            .radar-stage {
+            .radar-column {
                 width: min(100%, 42vh);
                 max-width: 380px;
             }
@@ -813,7 +858,7 @@
             .title-container h1 { font-size: 18px; }
             .title-container .subtitle { font-size: 11px; }
             .badger-credit { font-size: 12px; }
-            .radar-stage { width: min(100%, 34vh); }
+            .radar-column { width: min(100%, 34vh); }
         }
     </style>
 </head>
@@ -873,12 +918,6 @@ For single-group practice, shows the actual ownship and target positions on the 
 
 Shows or hides additional bearing lines and bearing numbers radiating from Bullseye. The east-west and north-south cross lines and the red 50nm and 100nm range rings are always visible.">?</span>
             </div>
-            <div class="plot-controls">
-                <label><input type="checkbox" id="plotMode"> Manual Plotting</label>
-                <span class="help-icon" data-tooltip="단일 그룹 문제에서 계산한 위치를 동심원에 직접 표시할 수 있습니다. 첫 번째 클릭은 내 기체, 두 번째 클릭은 타겟 위치입니다.
-
-Available only with Groups=1. Click ownship first, then click the calculated target position.">?</span>
-            </div>
         </fieldset>
 
         <fieldset>
@@ -914,7 +953,7 @@ Adjusts the voice-call playback speed. The default 1.0× has the same actual rat
 
         <div class="title-container">
             <h1>BULLSEYE TRAINER</h1>
-            <div class="subtitle"><span class="badger-credit">by Badger 🇰🇷</span> v0.2</div>
+            <div class="subtitle"><span class="badger-credit">by Badger 🇰🇷</span> v0.21</div>
         </div>
 
         <div class="controls-group">
@@ -971,10 +1010,36 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
     </div>
 
     <div class="right-panel">
-        <div class="radar-stage">
-            <button type="button" id="radarCoordinateToggle" class="radar-coordinate-toggle" aria-pressed="true" aria-label="Turn Bullseye coordinate view off">BULLS ---° / -- nm</button>
-            <canvas id="radarCanvas" width="400" height="400"></canvas>
-            <div id="callCountdown" class="call-countdown" aria-live="assertive" hidden></div>
+        <div class="radar-column">
+            <div class="radar-stage">
+                <div class="radar-toolbar">
+                    <button type="button" id="radarCoordinateToggle" class="radar-coordinate-toggle" aria-pressed="true" aria-label="Turn Bullseye coordinate view off">BULLS ---° / -- nm</button>
+                    <button type="button" id="btnUndoPlot" class="radar-undo-button" title="Undo the last plot" aria-label="Undo the last plot" disabled>↶</button>
+                </div>
+                <canvas id="radarCanvas" width="400" height="400"></canvas>
+                <div id="callCountdown" class="call-countdown" aria-live="assertive" hidden></div>
+            </div>
+            <div id="bearingInset" class="bearing-inset" hidden aria-label="Bearing to Target explanation">
+                <svg viewBox="0 0 400 86" role="img" aria-labelledby="bearingInsetTitle">
+                    <title id="bearingInsetTitle">Bearing to Target, clockwise from north at ownship</title>
+                    <defs>
+                        <marker id="bearingArrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                            <path d="M 0 0 L 6 3 L 0 6 Z" fill="#2ecc71"></path>
+                        </marker>
+                    </defs>
+                    <text x="12" y="16" fill="#2ecc71" font-size="10" font-weight="700">BEARING TO TARGET</text>
+                    <line x1="82" y1="50" x2="82" y2="20" stroke="#d7e0e8" stroke-width="1" stroke-dasharray="3 2"></line>
+                    <text x="82" y="13" fill="#d7e0e8" font-size="9" font-weight="700" text-anchor="middle">N / 000°</text>
+                    <line x1="74" y1="50" x2="90" y2="50" stroke="#3498db" stroke-width="2"></line>
+                    <line x1="82" y1="42" x2="82" y2="58" stroke="#3498db" stroke-width="2"></line>
+                    <text x="82" y="72" fill="#3498db" font-size="9" font-weight="700" text-anchor="middle">OWN</text>
+                    <line id="bearingInsetTargetLine" x1="82" y1="50" x2="82" y2="22" stroke="#2ecc71" stroke-width="1.5"></line>
+                    <path id="bearingInsetArc" d="" fill="none" stroke="#2ecc71" stroke-width="2" marker-end="url(#bearingArrowhead)"></path>
+                    <circle id="bearingInsetTarget" cx="82" cy="22" r="3" fill="#e74c3c"></circle>
+                    <text id="bearingInsetValue" x="128" y="43" fill="#fff" font-size="18" font-weight="800">BRG 000°</text>
+                    <text x="128" y="62" fill="#aab7c4" font-size="9">FROM OWN · CLOCKWISE FROM NORTH</text>
+                </svg>
+            </div>
         </div>
     </div>
 
@@ -1013,6 +1078,12 @@ For one group, enter the bearing from ownship to target and the target altitude,
     const canvas = document.getElementById('radarCanvas');
     const ctx = canvas.getContext('2d');
     const radarCoordinateToggle = document.getElementById('radarCoordinateToggle');
+    const btnUndoPlot = document.getElementById('btnUndoPlot');
+    const bearingInset = document.getElementById('bearingInset');
+    const bearingInsetArc = document.getElementById('bearingInsetArc');
+    const bearingInsetTargetLine = document.getElementById('bearingInsetTargetLine');
+    const bearingInsetTarget = document.getElementById('bearingInsetTarget');
+    const bearingInsetValue = document.getElementById('bearingInsetValue');
 
     const CENTER = 200;
     const RADIUS = 170;
@@ -1219,14 +1290,6 @@ For one group, enter the bearing from ownship to target and the target altitude,
         saveSettings();
     });
 
-    document.getElementById('plotMode').addEventListener('change', function() {
-        if (!this.checked) {
-            userMyPos = null;
-            userTgtPos = null;
-            drawRadar();
-        }
-    });
-
     // v0.2: Challenges 토글/라디오 변경 시 입력 UI 갱신 + 설정 저장
     document.getElementById('answerRangeMode').addEventListener('change', updateInputUI);
     document.getElementById('aspectMode').addEventListener('change', function() {
@@ -1238,7 +1301,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
     });
 
     // 모든 토글/설정 변경 시 localStorage 저장
-    ['easyMode', 'voiceMode', 'showBraMode', 'plotMode', 'autoRefreshMode',
+    ['easyMode', 'voiceMode', 'showBraMode', 'autoRefreshMode',
      'fixOwnBullseye', 'answerRangeMode', 'aspectMode'].forEach(id => {
         document.getElementById(id).addEventListener('change', saveSettings);
     });
@@ -1330,8 +1393,22 @@ For one group, enter the bearing from ownship to target and the target altitude,
         };
     }
 
-    function canPlacePicturePoint() {
-        return currentGroups > 1 && groupsData.length > 0 && !isChecked && !isTargetCallPending;
+    function canPlaceRadarPoint() {
+        const hasProblem = currentGroups > 1
+            ? groupsData.length > 0
+            : myData.rng > 0 && tgtData.rng > 0;
+        return hasProblem && !isChecked && !isTargetCallPending;
+    }
+
+    function placeSinglePlotPoint(point) {
+        if (!userMyPos) {
+            userMyPos = point;
+        } else if (!userTgtPos) {
+            userTgtPos = point;
+        } else {
+            userMyPos = point;
+            userTgtPos = null;
+        }
     }
 
     function radarCoordinateReadout() {
@@ -1342,9 +1419,12 @@ For one group, enter the bearing from ownship to target and the target altitude,
             (radarPointerPos.y - CENTER) / SCALE
         );
         const displayBearing = posit.brg === 0 ? 360 : posit.brg;
-        const nextPointLabel = currentGroups > 1 && userClicks.length < groupsData.length + 1
-            ? `${userClicks.length === 0 ? 'OWN' : `G${userClicks.length}`} · `
-            : '';
+        let nextPointLabel = '';
+        if (currentGroups > 1 && userClicks.length < groupsData.length + 1) {
+            nextPointLabel = `${userClicks.length === 0 ? 'OWN' : `G${userClicks.length}`} · `;
+        } else if (currentGroups === 1 && myData.rng > 0 && !isChecked) {
+            nextPointLabel = `${!userMyPos || userTgtPos ? 'OWN' : 'TGT'} · `;
+        }
         return `${nextPointLabel}BULLS ${displayBearing.toString().padStart(3, '0')}° / ${posit.rng} nm`;
     }
 
@@ -1365,8 +1445,26 @@ For one group, enter the bearing from ownship to target and the target altitude,
         drawRadar();
     });
 
+    function updateUndoPlotButton() {
+        const hasPlot = currentGroups > 1 ? userClicks.length > 0 : Boolean(userMyPos || userTgtPos);
+        btnUndoPlot.disabled = isChecked || isTargetCallPending || !hasPlot;
+    }
+
+    btnUndoPlot.addEventListener('click', function() {
+        if (btnUndoPlot.disabled) return;
+        if (currentGroups > 1) {
+            userClicks.pop();
+        } else if (userTgtPos) {
+            userTgtPos = null;
+        } else {
+            userMyPos = null;
+        }
+        radarPointerPos = null;
+        drawRadar();
+    });
+
     function syncRadarPointerMode() {
-        canvas.classList.toggle('picture-placement-active', canPlacePicturePoint());
+        canvas.classList.toggle('picture-placement-active', canPlaceRadarPoint());
     }
 
     function scheduleRadarPointerHide() {
@@ -1383,7 +1481,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         clearTimeout(radarPointerHideTimeout);
         radarPointerPos = canvasPointFromEvent(event);
 
-        if (canPlacePicturePoint()) {
+        if (canPlaceRadarPoint()) {
             activeRadarPointerId = event.pointerId;
             canvas.setPointerCapture(event.pointerId);
             event.preventDefault();
@@ -1412,8 +1510,12 @@ For one group, enter the bearing from ownship to target and the target altitude,
             radarPointerPos = point;
             activeRadarPointerId = null;
             if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-            if (canPlacePicturePoint() && userClicks.length < groupsData.length + 1) {
-                userClicks.push(point);
+            if (canPlaceRadarPoint()) {
+                if (currentGroups > 1 && userClicks.length < groupsData.length + 1) {
+                    userClicks.push(point);
+                } else if (currentGroups === 1) {
+                    placeSinglePlotPoint(point);
+                }
             }
             ignoreCanvasClickUntil = performance.now() + 700;
             event.preventDefault();
@@ -1449,22 +1551,8 @@ For one group, enter the bearing from ownship to target and the target altitude,
             return;
         }
 
-        if (getGroupsSetting() !== 1) return;
-
-        const plotMode = document.getElementById('plotMode').checked;
-        if (!plotMode) return;
-
-        const easyMode = document.getElementById('easyMode').checked;
-        if (easyMode || isChecked) return;
-
-        if (!userMyPos) {
-            userMyPos = {x, y};
-        } else if (!userTgtPos) {
-            userTgtPos = {x, y};
-        } else {
-            userMyPos = {x, y};
-            userTgtPos = null;
-        }
+        if (currentGroups !== 1 || isChecked) return;
+        placeSinglePlotPoint({x, y});
         drawRadar();
     });
 
@@ -1621,6 +1709,8 @@ For one group, enter the bearing from ownship to target and the target altitude,
         isTargetCallPending = false;
         document.getElementById('callCountdown').hidden = true;
         document.getElementById('answerFieldset').disabled = false;
+        syncRadarPointerMode();
+        drawRadar();
         updateTargetPositUI();
         speakUtterances(buildCallUtterances());
 
@@ -1640,6 +1730,8 @@ For one group, enter the bearing from ownship to target and the target altitude,
 
         isTargetCallPending = true;
         document.getElementById('answerFieldset').disabled = true;
+        syncRadarPointerMode();
+        drawRadar();
         updateTargetPositUI();
 
         const leadTimeSeconds = normalizeLeadTimeSeconds();
@@ -2045,7 +2137,6 @@ For one group, enter the bearing from ownship to target and the target altitude,
             easy: document.getElementById('easyMode').checked,
             voice: document.getElementById('voiceMode').checked,
             showBra: document.getElementById('showBraMode').checked,
-            plot: document.getElementById('plotMode').checked,
             autoRefresh: document.getElementById('autoRefreshMode').checked,
             refreshInterval: document.getElementById('refreshInterval').value,
             voiceRate: document.getElementById('voiceRate').value,
@@ -2076,7 +2167,6 @@ For one group, enter the bearing from ownship to target and the target altitude,
             setCheck('easyMode', saved.easy);
             setCheck('voiceMode', saved.voice);
             setCheck('showBraMode', saved.showBra);
-            setCheck('plotMode', saved.plot);
             setCheck('autoRefreshMode', saved.autoRefresh);
             setCheck('leadTimeMode', saved.leadTimeEnabled);
             setCheck('fixOwnBullseye', saved.fixOwn);
@@ -2130,20 +2220,13 @@ For one group, enter the bearing from ownship to target and the target altitude,
 
         buildAspectArea();
 
-        // Groups>=2에서는 Answer Range·Easy를 dim 처리하고 Manual Plotting을 강제로 해제
+        // Groups>=2에서는 Answer Range·Easy를 dim 처리
         const dimForPicture = groupsSetting > 1;
-        ['answerRangeMode', 'easyMode', 'plotMode'].forEach(id => {
+        ['answerRangeMode', 'easyMode'].forEach(id => {
             const el = document.getElementById(id);
             el.disabled = dimForPicture;
             el.parentElement.style.opacity = dimForPicture ? '0.4' : '1';
         });
-        const plotMode = document.getElementById('plotMode');
-        if (dimForPicture && plotMode.checked) {
-            plotMode.checked = false;
-            userMyPos = null;
-            userTgtPos = null;
-            if (themeColors.outerRing) drawRadar();
-        }
     }
 
     // Aspect 답변 버튼 행 생성 (그룹 수만큼)
@@ -2481,6 +2564,8 @@ For one group, enter the bearing from ownship to target and the target altitude,
     function drawRadar(progress = 1) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         updateRadarCoordinateToggle();
+        updateUndoPlotButton();
+        updateBearingInset();
 
         const showBearingLines = document.getElementById('showBraMode').checked;
 
@@ -2609,7 +2694,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         const tgtX = CENTER + (tgtData.rng * Math.sin(tgtRad) * SCALE);
         const tgtY = CENTER - (tgtData.rng * Math.cos(tgtRad) * SCALE);
 
-        if (!easyMode && !isChecked) {
+        if (!isChecked) {
             if (userMyPos) {
                 ctx.beginPath();
                 ctx.arc(userMyPos.x, userMyPos.y, 6, 0, 2 * Math.PI);
@@ -2665,21 +2750,6 @@ For one group, enter the bearing from ownship to target and the target altitude,
         }
 
         if (isChecked) {
-            ctx.strokeStyle = '#e74c3c';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(myX, myY);
-
-            if (progress <= 0.5) {
-                const p1 = progress * 2;
-                ctx.lineTo(lerp(myX, CENTER, p1), lerp(myY, CENTER, p1));
-            } else {
-                ctx.lineTo(CENTER, CENTER);
-                const p2 = (progress - 0.5) * 2;
-                ctx.lineTo(lerp(CENTER, tgtX, p2), lerp(CENTER, tgtY, p2));
-            }
-            ctx.stroke();
-
             ctx.strokeStyle = '#2ecc71';
             ctx.lineWidth = 2.5;
             ctx.beginPath();
@@ -2688,7 +2758,6 @@ For one group, enter the bearing from ownship to target and the target altitude,
             ctx.stroke();
 
             if (problemAspectOn) drawTrackArrow(tgtX, tgtY, tgtData.hdg);
-            drawBearingToTargetOverlay(myX, myY, tgtX, tgtY, trueBearing);
         }
 
         drawRadarPointerOverlay();
@@ -2710,95 +2779,38 @@ For one group, enter the bearing from ownship to target and the target altitude,
         ctx.restore();
     }
 
-    // Groups 1 정답에서 Ownship 기준 Bearing to Target을 시각적으로 설명
-    function drawBearingToTargetOverlay(myX, myY, tgtX, tgtY, bearing) {
-        const overlayColor = '#2ecc71';
-        const ownshipColor = '#3498db';
-        const arcRadius = 22;
-        const northRayLength = 31;
-        const crossSize = 7;
-        const startAngle = -Math.PI / 2;
-        const normalizedBearing = ((bearing % 360) + 360) % 360;
-        const endAngle = startAngle + normalizedBearing * (Math.PI / 180);
+    // Groups 1 정답의 Bearing to Target을 레이더 바깥 고정 인셋에 표시
+    function updateBearingInset() {
+        const shouldShow = currentGroups === 1 && isChecked;
+        bearingInset.hidden = !shouldShow;
+        if (!shouldShow) return;
 
-        ctx.save();
+        const bearing = ((trueBearing % 360) + 360) % 360;
+        const radians = bearing * (Math.PI / 180);
+        const centerX = 82;
+        const centerY = 50;
+        const targetRadius = 28;
+        const arcRadius = 21;
+        const targetX = centerX + targetRadius * Math.sin(radians);
+        const targetY = centerY - targetRadius * Math.cos(radians);
+        const arcX = centerX + arcRadius * Math.sin(radians);
+        const arcY = centerY - arcRadius * Math.cos(radians);
 
-        ctx.strokeStyle = ownshipColor;
-        ctx.lineWidth = 2;
-        ctx.setLineDash([]);
-        ctx.beginPath();
-        ctx.moveTo(myX - crossSize, myY);
-        ctx.lineTo(myX + crossSize, myY);
-        ctx.moveTo(myX, myY - crossSize);
-        ctx.lineTo(myX, myY + crossSize);
-        ctx.stroke();
+        bearingInsetTargetLine.setAttribute('x2', targetX.toFixed(2));
+        bearingInsetTargetLine.setAttribute('y2', targetY.toFixed(2));
+        bearingInsetTarget.setAttribute('cx', targetX.toFixed(2));
+        bearingInsetTarget.setAttribute('cy', targetY.toFixed(2));
+        bearingInsetValue.textContent = `BRG ${bearing.toString().padStart(3, '0')}°`;
 
-        ctx.strokeStyle = themeColors.textBearing;
-        ctx.lineWidth = 1.2;
-        ctx.setLineDash([3, 2]);
-        ctx.beginPath();
-        ctx.moveTo(myX, myY - crossSize - 2);
-        ctx.lineTo(myX, myY - northRayLength);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        ctx.fillStyle = themeColors.textBearing;
-        ctx.font = "bold 9px 'Segoe UI', Arial, sans-serif";
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('N / 000°', myX, Math.max(7, myY - northRayLength - 6));
-
-        if (normalizedBearing > 0) {
-            ctx.strokeStyle = overlayColor;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(myX, myY, arcRadius, startAngle, endAngle, false);
-            ctx.stroke();
-
-            const arrowX = myX + arcRadius * Math.cos(endAngle);
-            const arrowY = myY + arcRadius * Math.sin(endAngle);
-            const tangentAngle = endAngle + Math.PI / 2;
-            const arrowSize = 5;
-            ctx.fillStyle = overlayColor;
-            ctx.beginPath();
-            ctx.moveTo(arrowX, arrowY);
-            ctx.lineTo(
-                arrowX - arrowSize * Math.cos(tangentAngle - Math.PI / 6),
-                arrowY - arrowSize * Math.sin(tangentAngle - Math.PI / 6)
-            );
-            ctx.lineTo(
-                arrowX - arrowSize * Math.cos(tangentAngle + Math.PI / 6),
-                arrowY - arrowSize * Math.sin(tangentAngle + Math.PI / 6)
-            );
-            ctx.closePath();
-            ctx.fill();
+        if (bearing === 0) {
+            bearingInsetArc.setAttribute('d', '');
+            return;
         }
-
-        const lineDx = tgtX - myX;
-        const lineDy = tgtY - myY;
-        const lineLength = Math.hypot(lineDx, lineDy);
-        const offsetX = lineLength > 0 ? (-lineDy / lineLength) * 11 : 0;
-        const offsetY = lineLength > 0 ? (lineDx / lineLength) * 11 : 0;
-        const bearingText = `BRG ${bearing.toString().padStart(3, '0')}°`;
-        ctx.font = "bold 10px 'Segoe UI', Arial, sans-serif";
-        const labelWidth = ctx.measureText(bearingText).width + 10;
-        const labelHeight = 18;
-        const desiredX = (myX + tgtX) / 2 + offsetX;
-        const desiredY = (myY + tgtY) / 2 + offsetY;
-        const labelX = Math.max(labelWidth / 2 + 2, Math.min(canvas.width - labelWidth / 2 - 2, desiredX));
-        const labelY = Math.max(labelHeight / 2 + 2, Math.min(canvas.height - labelHeight / 2 - 2, desiredY));
-
-        ctx.fillStyle = 'rgba(10, 24, 38, 0.86)';
-        ctx.fillRect(labelX - labelWidth / 2, labelY - labelHeight / 2, labelWidth, labelHeight);
-        ctx.strokeStyle = overlayColor;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(labelX - labelWidth / 2, labelY - labelHeight / 2, labelWidth, labelHeight);
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(bearingText, labelX, labelY);
-
-        ctx.restore();
+        const largeArcFlag = bearing > 180 ? 1 : 0;
+        bearingInsetArc.setAttribute(
+            'd',
+            `M ${centerX} ${centerY - arcRadius} A ${arcRadius} ${arcRadius} 0 ${largeArcFlag} 1 ${arcX.toFixed(2)} ${arcY.toFixed(2)}`
+        );
     }
 
     // 화살표 꼬리를 target 마커의 진행 방향 쪽 바깥 가장자리에서 시작
