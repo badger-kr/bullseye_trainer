@@ -2763,6 +2763,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         const endAngle = startAngle + normalizedBearing * (Math.PI / 180);
         const targetDistance = Math.hypot(tgtX - myX, tgtY - myY);
         const arcRadius = Math.min(22, Math.max(10, targetDistance * 0.4));
+        const northRayLength = Math.min(28, Math.max(12, myY - 3));
         const occupied = [{
             left: tgtX - 8,
             right: tgtX + 8,
@@ -2781,6 +2782,15 @@ For one group, enter the bearing from ownship to target and the target altitude,
         ctx.moveTo(myX, myY - crossSize);
         ctx.lineTo(myX, myY + crossSize);
         ctx.stroke();
+
+        ctx.strokeStyle = themeColors.textBearing;
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([3, 2]);
+        ctx.beginPath();
+        ctx.moveTo(myX, myY - crossSize - 2);
+        ctx.lineTo(myX, myY - northRayLength);
+        ctx.stroke();
+        ctx.setLineDash([]);
 
         if (normalizedBearing > 0) {
             ctx.strokeStyle = bearingColor;
