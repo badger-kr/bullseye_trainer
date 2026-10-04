@@ -1689,7 +1689,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         } catch (error) {
             cancelTargetCallSequence();
             console.error("Critical error during Generation:", error);
-            alert("문제 생성 중 예외 오류가 발생했습니다. 브라우저를 새로고침 해주세요.");
+            alert("문제 생성 중 예외 오류가 발생했습니다. 브라우저를 새로고침 해주세요.\nAn error occurred while generating the problem. Please refresh the browser.");
         }
     }
 
@@ -2327,7 +2327,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
             const bearingVal = parseInt(document.getElementById('inputBearing').value, 10);
             const altVal = parseInt(document.getElementById('inputAlt').value, 10);
             if (isNaN(bearingVal) || isNaN(altVal)) {
-                alert("Bearing과 Alt 값을 입력해주세요.");
+                alert("Bearing과 Alt 값을 입력해주세요.\nPlease enter Bearing and Alt.");
                 return;
             }
             const rangeOn = document.getElementById('answerRangeMode').checked;
@@ -2335,12 +2335,12 @@ For one group, enter the bearing from ownship to target and the target altitude,
             if (rangeOn) {
                 rangeVal = parseInt(document.getElementById('inputRange').value, 10);
                 if (isNaN(rangeVal)) {
-                    alert("Range 값을 입력해주세요.");
+                    alert("Range 값을 입력해주세요.\nPlease enter Range.");
                     return;
                 }
             }
             if (problemAspectOn && !userAspectAnswers[0]) {
-                alert("Aspect를 선택해주세요.");
+                alert("Aspect를 선택해주세요.\nPlease select Aspect.");
                 return;
             }
 
@@ -2383,16 +2383,16 @@ For one group, enter the bearing from ownship to target and the target altitude,
             if (groupsData.length === 0) return;
 
             if (userClicks.length < groupsData.length + 1) {
-                alert(`캔버스에 위치를 모두 찍어주세요. (내 기체 1 + 그룹 ${groupsData.length})`);
+                alert(`캔버스에 위치를 모두 찍어주세요. (내 기체 1 + 그룹 ${groupsData.length})\nPlease plot all positions on the scope. (Ownship 1 + Groups ${groupsData.length})`);
                 return;
             }
             const altVal = parseInt(document.getElementById('inputAlt').value, 10);
             if (isNaN(altVal)) {
-                alert("Alt 값을 입력해주세요.");
+                alert("Alt 값을 입력해주세요.\nPlease enter Alt.");
                 return;
             }
             if (problemAspectOn && userAspectAnswers.some(a => !a)) {
-                alert("모든 그룹의 Aspect를 선택해주세요.");
+                alert("모든 그룹의 Aspect를 선택해주세요.\nPlease select Aspect for every group.");
                 return;
             }
 
