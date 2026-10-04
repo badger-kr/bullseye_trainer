@@ -1138,9 +1138,9 @@ Sets how long you can review Own Bullseye before the target information and voic
                 </div>
                 <div class="posit-option-row">
                     <label><input type="checkbox" id="fixOwnBullseye"> Fix Own Bullseye</label>
-                    <span class="help-icon" tabindex="0" data-tooltip="다음 문제를 생성해도 현재 Own Bullseye 위치를 그대로 유지합니다. 같은 위치에서 여러 콜을 연속으로 연습할 때 사용합니다. 켜면 Own Bullseye가 바로 표시되고, 문제가 없을 때 끄면 비워집니다. 채점 후에 끄면 새 Own Bullseye가 바로 표시되어 다음 문제에 쓰입니다.
+                    <span class="help-icon" tabindex="0" data-tooltip="다음 문제를 생성해도 현재 Own Bullseye 위치를 그대로 유지합니다. 같은 위치에서 여러 콜을 연속으로 연습할 때 사용합니다. 켜면 Own Bullseye가 바로 표시되고, 문제가 없을 때 끄면 비워집니다. 채점 후에 껐다가 다시 켜면 새 Own Bullseye가 정해지고, 레이더와 결과는 GENERATE 전까지 그대로 남습니다.
 
-Keeps the current Own Bullseye position when generating the next problem. Useful for practicing several calls from one location. Turning it on shows Own Bullseye immediately, and turning it off clears it when no problem is active. Turning it off after grading shows a new Own Bullseye for the next problem.">?</span>
+Keeps the current Own Bullseye position when generating the next problem. Useful for practicing several calls from one location. Turning it on shows Own Bullseye immediately, and turning it off clears it when no problem is active. After grading, turning it off and on again picks a new Own Bullseye, while the radar and results stay until GENERATE.">?</span>
                 </div>
             </div>
 
@@ -1798,6 +1798,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
             problemAspectOn = document.getElementById('aspectMode').checked;
 
             const isFixOwn = document.getElementById('fixOwnBullseye').checked;
+            ownReleasedAfterGrading = false;
             if (nextOwnData) {
                 myData = nextOwnData;
                 nextOwnData = null;
@@ -1861,8 +1862,9 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         countdown.classList.add('countdown-pop');
     }
 
-    // 채점 후 Fix Own Bullseye를 끄면 정해 두는 다음 문제용 Own Bullseye (현재 결과 화면의 myData는 그대로 둔다)
+    // 채점 후 Fix Own Bullseye를 껐다가 다시 켜면 정해 두는 다음 문제용 Own Bullseye (현재 결과 화면의 myData는 그대로 둔다)
     let nextOwnData = null;
+    let ownReleasedAfterGrading = false;
 
     function randomOwnPosit() {
         return {
@@ -1889,17 +1891,20 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     // Fix Own Bullseye: 켜면 Own Bullseye를 바로 보여 주고, 문제가 없을 때 끄면 비운다
     document.getElementById('fixOwnBullseye').addEventListener('change', function() {
         if (this.checked) {
-            if (myData.rng === 0) randomizeOwnBullseye();
+            if (isChecked && ownReleasedAfterGrading) {
+                // 채점 후 껐다가 다시 켜면 새 Own Bullseye를 정한다. 결과(레이더·표)는 Generate 전까지 그대로 둔다
+                nextOwnData = randomOwnPosit();
+            } else if (myData.rng === 0) {
+                randomizeOwnBullseye();
+            }
             renderOwnBullseye();
             flashOwnBullseye();
         } else if (!hasActiveProblem()) {
             myData = { brg: 0, rng: 0 };
             renderOwnBullseye();
         } else if (isChecked) {
-            // 채점이 끝났으면 결과(레이더·표)는 유지하고 새 Own Bullseye를 바로 보여 준다
-            nextOwnData = randomOwnPosit();
-            renderOwnBullseye();
-            flashOwnBullseye();
+            // 채점 후 끄면 화면은 그대로 두고, 다시 켤 때 새 Own Bullseye를 정하도록 표시만 해 둔다
+            ownReleasedAfterGrading = true;
         }
     });
 
