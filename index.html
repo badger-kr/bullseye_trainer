@@ -489,13 +489,16 @@
             flex: 1;
             min-width: 90px;
         }
-        .voice-current {
-            flex: 1;
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .voice-note {
+            margin: 6px 0 0;
+            font-size: 11px;
+            line-height: 1.4;
             color: var(--muted-color);
-            font-size: 13px;
+            white-space: normal;
+        }
+        .voice-note a {
+            color: inherit;
+            font-weight: bold;
         }
         #voiceRateValue {
             width: 34px;
@@ -1087,13 +1090,6 @@ Plays the target information as an English voice call. With Voice on, the Target
 Prefers an installed English voice matching the selected gender. If none matches, the app automatically uses another available English voice.">?</span>
                             </div>
                             <div class="plot-controls">
-                                <span>Using</span>
-                                <span class="voice-current" id="voiceCurrent">Browser default</span>
-                                <span class="help-icon" tabindex="0" data-tooltip="현재 음성 콜에 쓰는 음성입니다. Enhanced·Premium 음성을 내려받아 두면 같은 성별 안에서 자동으로 우선 사용합니다. iPhone·iPad는 설정 > 손쉬운 사용 > 읽기 및 말하기 > 음성 > English에서 내려받을 수 있습니다.
-
-The voice currently used for calls. Downloaded Enhanced or Premium voices are preferred automatically within the selected gender. On iPhone and iPad, download them in Settings > Accessibility > Read &amp; Speak > Voices > English.">?</span>
-                            </div>
-                            <div class="plot-controls">
                                 <label for="voiceRate">Voice speed</label>
                                 <input type="range" id="voiceRate" class="voice-rate-input" value="1.0" min="0.5" max="2.0" step="0.1">
                                 <output id="voiceRateValue" for="voiceRate">1.0×</output>
@@ -1101,6 +1097,7 @@ The voice currently used for calls. Downloaded Enhanced or Premium voices are pr
 
 Adjusts the voice-call playback speed from 0.5× to 2.0×. 1.0× is tuned to the standard rate of each OS's default voices.">?</span>
                             </div>
+                            <p class="voice-note">iPhone Safari에서 음성이 부정확하면 설명서의 <a href="bullseye_manual.html#enhanced-voice" target="_blank" rel="noopener">Enhanced Voice 설정</a>을 참고하세요.<br>On iPhone Safari, if the voice sounds unclear, see <a href="bullseye_manual.html#enhanced-voice-en" target="_blank" rel="noopener">Enhanced Voice setup</a> in the guide.</p>
                         </fieldset>
                     </div>
                 </div>
@@ -1302,21 +1299,6 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         return LOW_QUALITY_VOICES.includes(baseName);
     }
 
-    function updateCurrentVoiceLabel() {
-        const label = document.getElementById('voiceCurrent');
-        if (!myVoice) {
-            label.textContent = 'Browser default';
-            label.title = '';
-            return;
-        }
-        const score = voiceQualityScore(myVoice);
-        const quality = ['natural', 'premium', 'enhanced'][4 - score];
-        const name = quality && !myVoice.name.toLowerCase().includes(quality)
-            ? `${myVoice.name} (${quality[0].toUpperCase()}${quality.slice(1)})`
-            : myVoice.name;
-        label.textContent = name;
-        label.title = name;
-    }
 
     function initVoices() {
         const voices = window.speechSynthesis.getVoices();
@@ -1338,7 +1320,6 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         ];
         const preferred = tiers.find(tier => tier.length > 0) || [];
         myVoice = preferred.sort((a, b) => voiceQualityScore(b) - voiceQualityScore(a))[0] || null;
-        updateCurrentVoiceLabel();
     }
 
     function primeSpeechSynthesis() {
