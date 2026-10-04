@@ -249,7 +249,8 @@
         .radar-coordinate-toggle[aria-pressed="false"]::before {
             color: var(--muted-color);
         }
-        .radar-undo-button {
+        .radar-undo-button,
+        .radar-rings-toggle {
             box-sizing: border-box;
             width: 29px;
             height: 25px;
@@ -275,6 +276,26 @@
             height: 18px;
             margin: auto;
             fill: currentColor;
+        }
+        .radar-rings-toggle {
+            border-color: #e74c3c;
+        }
+        .radar-rings-toggle[aria-pressed="false"] {
+            border-color: var(--muted-color);
+            color: var(--muted-color);
+        }
+        .radar-rings-toggle svg {
+            display: block;
+            width: 17px;
+            height: 17px;
+            margin: auto;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+        .radar-rings-toggle .ring-center {
+            fill: currentColor;
+            stroke: none;
         }
         .call-countdown {
             position: absolute;
@@ -1016,6 +1037,13 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
         <div class="radar-column">
             <div class="radar-toolbar">
                     <button type="button" id="radarCoordinateToggle" class="radar-coordinate-toggle" aria-pressed="true" aria-label="Turn Bullseye coordinate view off">BULLS ---° / -- nm</button>
+                    <button type="button" id="btnRangeRings" class="radar-rings-toggle" aria-pressed="true" title="Hide range rings" aria-label="Hide range rings">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="12" r="5.5"></circle>
+                            <circle cx="12" cy="12" r="1.5" class="ring-center"></circle>
+                        </svg>
+                    </button>
                     <button type="button" id="btnUndoPlot" class="radar-undo-button" title="Undo the last plot" aria-label="Undo the last plot" disabled>
                         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                             <path d="M8.5 4.2V1.3L1.4 8.1l7.1 6.8v-3.2c5.4 0 9.2 2.1 12.1 7.1-.5-8.2-4.4-13.3-12.1-14.6Z"></path>
@@ -1065,6 +1093,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
     const ctx = canvas.getContext('2d');
     const radarCoordinateToggle = document.getElementById('radarCoordinateToggle');
     const btnUndoPlot = document.getElementById('btnUndoPlot');
+    const btnRangeRings = document.getElementById('btnRangeRings');
 
     const CENTER = 200;
     const RADIUS = 170;
@@ -1103,6 +1132,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
     let userTgtPos = null;
     let radarPointerPos = null;
     let isRadarCoordinateViewOn = true;
+    let isRangeRingsOn = true;
     let activeRadarPointerId = null;
     let ignoreCanvasClickUntil = 0;
     let radarPointerHideTimeout = null;
@@ -1431,6 +1461,19 @@ For one group, enter the bearing from ownship to target and the target altitude,
         isRadarCoordinateViewOn = !isRadarCoordinateViewOn;
         radarPointerPos = null;
         drawRadar();
+    });
+
+    function updateRangeRingsToggle() {
+        const label = isRangeRingsOn ? 'Hide range rings' : 'Show range rings';
+        btnRangeRings.setAttribute('aria-pressed', String(isRangeRingsOn));
+        btnRangeRings.setAttribute('aria-label', label);
+        btnRangeRings.title = label;
+    }
+
+    btnRangeRings.addEventListener('click', function() {
+        isRangeRingsOn = !isRangeRingsOn;
+        drawRadar();
+        saveSettings();
     });
 
     function updateUndoPlotButton() {
@@ -2140,6 +2183,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
             answerRange: document.getElementById('answerRangeMode').checked,
             aspect: document.getElementById('aspectMode').checked,
             groups: getGroupsSetting(),
+            rangeRings: isRangeRingsOn,
             dark: document.body.classList.contains('dark-mode')
         };
         try {
@@ -2161,6 +2205,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
             setCheck('autoRefreshMode', saved.autoRefresh);
             setCheck('leadTimeMode', saved.leadTimeEnabled);
             setCheck('fixOwnBullseye', saved.fixOwn);
+            if (typeof saved.rangeRings === 'boolean') isRangeRingsOn = saved.rangeRings;
             setCheck('answerRangeMode', saved.answerRange);
             setCheck('aspectMode', saved.aspect);
             if (saved.refreshInterval) document.getElementById('refreshInterval').value = saved.refreshInterval;
@@ -2556,10 +2601,11 @@ For one group, enter the bearing from ownship to target and the target altitude,
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         updateRadarCoordinateToggle();
         updateUndoPlotButton();
+        updateRangeRingsToggle();
 
         const showBearingLines = document.getElementById('showBraMode').checked;
 
-        [50, 100].forEach(rng => {
+        if (isRangeRingsOn) [50, 100].forEach(rng => {
             ctx.beginPath();
             ctx.arc(CENTER, CENTER, rng * SCALE, 0, 2 * Math.PI);
             ctx.strokeStyle = themeColors.highlightRange;
@@ -2644,7 +2690,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         ctx.textAlign = "left";
         ctx.textBaseline = "bottom";
 
-        const labelRanges = [50, 100];
+        const labelRanges = isRangeRingsOn ? [50, 100] : [];
         labelRanges.forEach(rng => {
             const dist = rng * SCALE;
             const text = rng.toString();
