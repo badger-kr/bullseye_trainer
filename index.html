@@ -2618,12 +2618,12 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         let timeLeft = parseInt(document.getElementById('refreshInterval').value, 10);
         if (isNaN(timeLeft) || timeLeft <= 0) timeLeft = 10;
 
-        btn.innerText = `GENERATE (refresh in ${timeLeft}s)`;
+        btn.innerText = `GENERATE (in ${timeLeft}s)`;
 
         countdownInterval = setInterval(() => {
             timeLeft--;
             if (timeLeft > 0) {
-                btn.innerText = `GENERATE (refresh in ${timeLeft}s)`;
+                btn.innerText = `GENERATE (in ${timeLeft}s)`;
             } else {
                 clearInterval(countdownInterval);
             }
