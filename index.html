@@ -261,8 +261,55 @@
             pointer-events: none;
         }
         .app-container.radar-collapsed .radar-toolbar,
-        .app-container.radar-collapsed canvas {
+        .app-container.radar-collapsed canvas,
+        .app-container.radar-collapsed .radar-legend {
             display: none;
+        }
+        /* 레이더 범례: 꽉 찬 배지 = 실제 위치, 빈 원 = 내가 찍은 위치 */
+        .radar-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 4px 12px;
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--muted-color);
+        }
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .legend-mark {
+            box-sizing: border-box;
+            display: inline-flex;
+            width: 16px;
+            height: 16px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font: bold 9px 'Segoe UI', Arial, sans-serif;
+        }
+        .legend-truth {
+            background-color: #e74c3c;
+            color: #fff;
+        }
+        .legend-truth.legend-own {
+            background-color: #3498db;
+        }
+        .legend-plot {
+            border: 2px solid #e74c3c;
+            color: #e74c3c;
+        }
+        .legend-plot.legend-own {
+            border-color: #3498db;
+            color: #3498db;
+        }
+        .legend-own-text {
+            color: #3498db;
+        }
+        .legend-group-text {
+            color: #e74c3c;
         }
         .radar-column {
             width: 400px;
@@ -1112,6 +1159,11 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
                 <canvas id="radarCanvas" width="400" height="400"></canvas>
                 <div id="callCountdown" class="call-countdown" aria-live="assertive" hidden></div>
             </div>
+            <div class="radar-legend">
+                <span class="legend-item"><span class="legend-mark legend-truth legend-own">O</span><span class="legend-mark legend-truth">1</span>Actual</span>
+                <span class="legend-item"><span class="legend-mark legend-plot legend-own">O</span><span class="legend-mark legend-plot">1</span>My plot</span>
+                <span class="legend-item"><b class="legend-own-text">O</b>&nbsp;Ownship&nbsp;·&nbsp;<b class="legend-group-text">1–3</b>&nbsp;Groups</span>
+            </div>
         </div>
     </div>
 
@@ -1206,6 +1258,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         themeColors.bearingLabelText = rootStyle.getPropertyValue('--bearing-label-text').trim() || '#0b4f7c';
         themeColors.outerRing = rootStyle.getPropertyValue('--bra-outer-ring').trim() || '#000000';
         themeColors.bullseye = rootStyle.getPropertyValue('--bra-bullseye').trim() || 'rgba(0,0,0,0.5)';
+        themeColors.canvasBg = rootStyle.getPropertyValue('--canvas-bg').trim() || '#fdfdfd';
     }
 
     const VOICE_GENDER_HINTS = {
@@ -2798,59 +2851,16 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         const tgtX = CENTER + (tgtData.rng * Math.sin(tgtRad) * SCALE);
         const tgtY = CENTER - (tgtData.rng * Math.cos(tgtRad) * SCALE);
 
-        if (!isChecked) {
-            if (userMyPos) {
-                ctx.beginPath();
-                ctx.arc(userMyPos.x, userMyPos.y, 6, 0, 2 * Math.PI);
-                ctx.fillStyle = '#3498db';
-                ctx.fill();
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
-            if (userTgtPos) {
-                ctx.beginPath();
-                ctx.arc(userTgtPos.x, userTgtPos.y, 6, 0, 2 * Math.PI);
-                ctx.fillStyle = '#e74c3c';
-                ctx.fill();
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(userMyPos.x, userMyPos.y);
-                ctx.lineTo(userTgtPos.x, userTgtPos.y);
-                ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--dash-line-color').trim();
-                ctx.setLineDash([5, 5]);
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-        }
-
-        if (isChecked && userMyPos) {
+        // 제출 전 내가 찍은 두 점 사이 점선
+        if (!isChecked && userMyPos && userTgtPos) {
             ctx.beginPath();
-            ctx.arc(userMyPos.x, userMyPos.y, 5, 0, 2 * Math.PI);
-            ctx.fillStyle = 'rgba(52, 152, 219, 0.4)';
-            ctx.fill();
-        }
-        if (isChecked && userTgtPos) {
-            ctx.beginPath();
-            ctx.arc(userTgtPos.x, userTgtPos.y, 5, 0, 2 * Math.PI);
-            ctx.fillStyle = 'rgba(231, 76, 60, 0.4)';
-            ctx.fill();
-        }
-
-        if (easyMode || isChecked) {
-            ctx.beginPath();
-            ctx.arc(myX, myY, 4, 0, 2 * Math.PI);
-            ctx.fillStyle = '#3498db';
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(tgtX, tgtY, 4, 0, 2 * Math.PI);
-            ctx.fillStyle = '#e74c3c';
-            ctx.fill();
+            ctx.moveTo(userMyPos.x, userMyPos.y);
+            ctx.lineTo(userTgtPos.x, userTgtPos.y);
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--dash-line-color').trim();
+            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.setLineDash([]);
         }
 
         if (isChecked) {
@@ -2865,7 +2875,60 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
             drawBearingToTargetOverlay(myX, myY, tgtX, tgtY, trueBearing);
         }
 
+        // 내 점은 정답 해설(원호·선) 위에, 실제 위치 배지는 가장 위에 그린다
+        if (userMyPos) drawPlotRing(userMyPos.x, userMyPos.y, 'O', OWN_COLOR);
+        if (userTgtPos) drawPlotRing(userTgtPos.x, userTgtPos.y, '1', GROUP_COLOR);
+        if (easyMode || isChecked) {
+            drawTruthBadge(myX, myY, 'O', OWN_COLOR);
+            drawTruthBadge(tgtX, tgtY, '1', GROUP_COLOR);
+        }
+
         drawRadarPointerOverlay();
+    }
+
+    const OWN_COLOR = '#3498db';
+    const GROUP_COLOR = '#e74c3c';
+    const PLOT_RING_RADIUS = 10;
+    const TRUTH_BADGE_RADIUS = 8;
+
+    // 내가 찍은 위치: 속이 빈 원 + 같은 색 라벨 (O = Ownship, 숫자 = 그룹)
+    function drawPlotRing(x, y, label, color) {
+        ctx.save();
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(x, y, PLOT_RING_RADIUS, 0, 2 * Math.PI);
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = themeColors.canvasBg;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = color;
+        ctx.stroke();
+        ctx.fillStyle = color;
+        ctx.font = "bold 10px 'Segoe UI', Arial, sans-serif";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, x, y + 0.5);
+        ctx.restore();
+    }
+
+    // 실제 위치: 속이 꽉 찬 배지 + 흰 라벨
+    function drawTruthBadge(x, y, label, color) {
+        ctx.save();
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(x, y, TRUTH_BADGE_RADIUS, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#fff';
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.font = "bold 10px 'Segoe UI', Arial, sans-serif";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, x, y + 0.5);
+        ctx.restore();
     }
 
     function drawRadarPointerOverlay() {
@@ -2887,12 +2950,11 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     // Groups 1 정답에서 실제 Ownship 위치를 기준으로 Bearing to Target을 설명
     function drawBearingToTargetOverlay(myX, myY, tgtX, tgtY, bearing) {
         const bearingColor = '#3498db';
-        const crossSize = 7;
         const startAngle = -Math.PI / 2;
         const normalizedBearing = ((bearing % 360) + 360) % 360;
         const endAngle = startAngle + normalizedBearing * (Math.PI / 180);
         const targetDistance = Math.hypot(tgtX - myX, tgtY - myY);
-        const arcRadius = Math.min(22, Math.max(10, targetDistance * 0.4));
+        const arcRadius = Math.min(22, Math.max(TRUTH_BADGE_RADIUS + 5, targetDistance * 0.4));
         const northRayLength = Math.min(28, Math.max(12, myY - 3));
         const occupied = [{
             left: tgtX - 8,
@@ -2904,20 +2966,11 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         ctx.save();
         ctx.setLineDash([]);
 
-        ctx.strokeStyle = bearingColor;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(myX - crossSize, myY);
-        ctx.lineTo(myX + crossSize, myY);
-        ctx.moveTo(myX, myY - crossSize);
-        ctx.lineTo(myX, myY + crossSize);
-        ctx.stroke();
-
         ctx.strokeStyle = themeColors.textBearing;
         ctx.lineWidth = 1.2;
         ctx.setLineDash([3, 2]);
         ctx.beginPath();
-        ctx.moveTo(myX, myY - crossSize - 2);
+        ctx.moveTo(myX, myY - TRUTH_BADGE_RADIUS - 2);
         ctx.lineTo(myX, myY - northRayLength);
         ctx.stroke();
         ctx.setLineDash([]);
@@ -3028,7 +3081,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         const rad = heading * (Math.PI / 180);
         const ux = Math.sin(rad);
         const uy = -Math.cos(rad);
-        const markerOuterEdge = 7;
+        const markerOuterEdge = TRUTH_BADGE_RADIUS + 2;
         const arrowLength = 26;
         const startX = x + ux * markerOuterEdge;
         const startY = y + uy * markerOuterEdge;
@@ -3056,62 +3109,25 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         ctx.restore();
     }
 
-    // picture 모드 오버레이: 사용자 클릭 마커 + 제출 후 실제 위치·허용 반경(15nm) 원
+    // picture 모드 오버레이: 내가 찍은 위치(빈 원) + 제출 후 실제 위치(꽉 찬 배지)·track
     function drawPictureOverlay() {
         userClicks.forEach((p, i) => {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, 7, 0, 2 * Math.PI);
-            ctx.fillStyle = i === 0 ? '#3498db' : '#e74c3c';
-            ctx.fill();
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            if (i > 0) {
-                ctx.fillStyle = '#fff';
-                ctx.font = "bold 9px 'Segoe UI', Arial, sans-serif";
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(String(i), p.x, p.y);
-            }
+            drawPlotRing(p.x, p.y, i === 0 ? 'O' : String(i), i === 0 ? OWN_COLOR : GROUP_COLOR);
         });
 
         if (!isChecked || groupsData.length === 0) return;
-
-        const ownXY = positToXY(myData.brg, myData.rng);
-        const points = [{
-            x: CENTER + ownXY.x * SCALE,
-            y: CENTER + ownXY.y * SCALE,
-            color: '#3498db'
-        }];
-        groupsData.forEach((g, i) => {
-            points.push({
-                x: CENTER + g.x * SCALE,
-                y: CENTER + g.y * SCALE,
-                color: '#e74c3c',
-                num: i + 1
-            });
-        });
-
-        points.forEach(p => {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
-            ctx.fillStyle = p.color;
-            ctx.fill();
-
-            if (p.num) {
-                ctx.fillStyle = p.color;
-                ctx.font = "bold 11px 'Segoe UI', Arial, sans-serif";
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(String(p.num), p.x + 10, p.y - 10);
-            }
-        });
 
         if (problemAspectOn) {
             groupsData.forEach(g => {
                 drawTrackArrow(CENTER + g.x * SCALE, CENTER + g.y * SCALE, g.hdg);
             });
         }
+
+        const ownXY = positToXY(myData.brg, myData.rng);
+        drawTruthBadge(CENTER + ownXY.x * SCALE, CENTER + ownXY.y * SCALE, 'O', OWN_COLOR);
+        groupsData.forEach((g, i) => {
+            drawTruthBadge(CENTER + g.x * SCALE, CENTER + g.y * SCALE, String(i + 1), GROUP_COLOR);
+        });
     }
 
     init();
