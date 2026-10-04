@@ -83,7 +83,7 @@
                 "result toggle radar"
                 "footer footer footer";
             background-color: var(--panel-bg);
-            padding: 38px 24px 24px;
+            padding: 24px;
             column-gap: 8px;
             row-gap: 9px;
             align-items: start;
@@ -93,15 +93,18 @@
             transition: background-color 0.3s, box-shadow 0.3s;
         }
 
+        /* Score 줄 왼쪽의 설명서·설정 아이콘 묶음. 설정 패널은 이 묶음 아래에 열린다 */
+        .app-tools {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
         .settings-toggle {
-            position: absolute;
-            top: 10px;
-            right: 14px;
             cursor: pointer;
             user-select: none;
             font-size: 19px;
             line-height: 1;
-            z-index: 30;
             width: 34px;
             height: 34px;
             margin: 0;
@@ -115,10 +118,6 @@
             background-color: var(--bg-color);
         }
         .guide-link {
-            position: absolute;
-            top: 10px;
-            right: 54px;
-            z-index: 30;
             display: inline-flex;
             width: 34px;
             height: 34px;
@@ -134,12 +133,12 @@
         }
         .settings-panel {
             position: absolute;
-            top: 48px;
-            right: 14px;
+            top: calc(100% + 6px);
+            left: 0;
             z-index: 25;
             width: min(320px, calc(100vw - 28px));
-            max-height: calc(100vh - 64px);
-            max-height: calc(100dvh - 64px);
+            max-height: calc(100vh - 160px);
+            max-height: calc(100dvh - 160px);
             overflow-y: auto;
             padding: 14px;
             background-color: var(--panel-bg);
@@ -858,7 +857,7 @@
                     "result"
                     "footer";
                 overflow: visible;
-                padding: 30px 8px 8px;
+                padding: 8px;
                 gap: 7px;
                 width: 100%;
                 max-width: 430px;
@@ -895,15 +894,6 @@
             }
             .title-container h1 { font-size: 21px; }
             .title-container .subtitle { margin-top: 1px; }
-            .settings-toggle { top: 5px; right: 7px; }
-            .guide-link { top: 5px; right: 47px; }
-            .settings-panel {
-                position: fixed;
-                top: 44px;
-                right: 7px;
-                max-height: calc(100vh - 52px);
-                max-height: calc(100dvh - 52px);
-            }
             fieldset { padding: 7px; }
             .generate-row button { padding: 9px; }
             .posit-row { margin-bottom: 4px; }
@@ -961,90 +951,6 @@
 </svg>
 
 <div class="app-container">
-    <a class="guide-link" href="bullseye_manual.html" target="_blank" rel="noopener" aria-label="Open user guide" title="User Guide / 사용설명서">📘</a>
-    <button type="button" class="settings-toggle" id="settingsToggle" aria-label="Open settings" aria-controls="settingsPanel" aria-expanded="false" title="Settings">⚙️</button>
-
-    <div class="settings-panel" id="settingsPanel" hidden>
-        <div class="settings-header">
-            <strong>Settings</strong>
-            <label class="theme-option" title="Toggle Light/Dark Mode">
-                <input type="checkbox" id="themeToggle">
-                <span id="themeIcon">🌙</span> Dark mode
-            </label>
-        </div>
-
-        <fieldset>
-            <legend>Challenges</legend>
-            <div class="plot-controls">
-                <label><input type="checkbox" id="answerRangeMode"> Answer Range</label>
-                <span class="help-icon" data-tooltip="내 기체와 각 타겟 사이의 거리도 함께 답합니다. 다중 그룹에서는 모든 그룹의 거리를 답합니다. 정답 허용 범위는 ±10nm입니다.
-
-Also enter the range from ownship to each target. For multiple groups, answer the range of every group. The tolerance is ±10nm.">?</span>
-            </div>
-            <div class="plot-controls">
-                <label><input type="checkbox" id="aspectMode"> Track</label>
-                <span class="help-icon" data-tooltip="음성 콜에 각 그룹의 진행 방향(track)이 추가됩니다. 내 기체에서 본 움직임을 기준으로 HOT / FLANK / BEAM / COLD 중 하나를 선택합니다.
-
-Adds each group's track to the voice call. Choose HOT, FLANK, BEAM, or COLD based on its movement relative to ownship.">?</span>
-            </div>
-            <div class="plot-controls">
-                <span style="margin-right: 4px;">Groups</span>
-                <label><input type="radio" name="groups" value="1" checked> 1</label>
-                <label><input type="radio" name="groups" value="2"> 2</label>
-                <label><input type="radio" name="groups" value="3"> 3</label>
-                <span class="help-icon" data-tooltip="1은 단일 타겟 문제입니다. 2 또는 3을 선택하면 picture 콜이 나오며, 불러준 순서대로 그룹마다 한 행씩 답합니다. 동심원에 내 기체와 각 그룹을 찍는 것은 채점하지 않는 보조 수단입니다.
-
-데스크톱에서는 마우스 위치의 Bullseye 좌표를 확인하고 클릭합니다. 모바일에서는 누른 채 위치를 조정하고 손을 떼어 확정합니다.
-
-Choose 1 for a single target. With 2 or 3 groups, answer one row per group in call order. Plotting ownship and each group on the scope is an unscored aid. On desktop, check the Bullseye readout and click. On mobile, press, drag to adjust, and release to place.">?</span>
-            </div>
-        </fieldset>
-
-        <fieldset>
-            <legend>Assist</legend>
-            <div class="plot-controls">
-                <label><input type="checkbox" id="easyMode"> Easy</label>
-                <span class="help-icon" data-tooltip="단일 그룹 문제에서 제출하기 전에도 동심원에 내 기체와 타겟의 실제 위치를 보여줍니다. 위치 계산을 처음 연습할 때 유용합니다.
-
-For single-group practice, shows the actual ownship and target positions on the scope before submission. Useful while learning position calculations.">?</span>
-            </div>
-            <div class="plot-controls">
-                <label><input type="checkbox" id="showBraMode" checked> Show Bearing Lines</label>
-                <span class="help-icon" data-tooltip="Bullseye에서 뻗는 추가 방위선과 방위각 숫자를 표시하거나 숨깁니다. 동서·남북 십자 실선과 빨간색 50nm·100nm Range 링은 항상 표시됩니다.
-
-Shows or hides additional bearing lines and bearing numbers radiating from Bullseye. The east-west and north-south cross lines and the red 50nm and 100nm range rings are always visible.">?</span>
-            </div>
-        </fieldset>
-
-        <fieldset>
-            <legend>Session</legend>
-            <div class="plot-controls">
-                <label><input type="checkbox" id="voiceMode" checked> Voice</label>
-                <span class="help-icon" data-tooltip="Target 정보를 영어 음성 콜로 재생합니다. Voice를 끄면 Lead Time이 지난 뒤 Target 표에서 문제 정보를 직접 확인할 수 있습니다.
-
-Plays the target information as an English voice call. When Voice is off, the target table shows the problem information after Lead Time.">?</span>
-            </div>
-            <div class="plot-controls">
-                <span>Voice gender</span>
-                <span class="voice-gender-options">
-                    <label><input type="radio" name="voiceGender" value="male"> Male</label>
-                    <label><input type="radio" name="voiceGender" value="female" checked> Female</label>
-                </span>
-                <span class="help-icon" tabindex="0" data-tooltip="브라우저에 설치된 영어 음성 중 선택한 성별과 가장 잘 맞는 음성을 우선 사용합니다. 일치하는 음성이 없으면 사용 가능한 영어 음성으로 자동 대체됩니다.
-
-Prefers an installed English voice matching the selected gender. If none matches, the app automatically uses another available English voice.">?</span>
-            </div>
-            <div class="plot-controls">
-                <label for="voiceRate">Voice speed</label>
-                <input type="range" id="voiceRate" class="voice-rate-input" value="1.0" min="0.5" max="2.0" step="0.1">
-                <output id="voiceRateValue" for="voiceRate">1.0×</output>
-                <span class="help-icon" tabindex="0" data-tooltip="음성 콜의 재생 속도를 0.5×~2.0× 사이에서 조절합니다. 1.0×는 운영체제별 기본 음성의 표준 속도에 맞춰져 있습니다.
-
-Adjusts the voice-call playback speed from 0.5× to 2.0×. 1.0× is tuned to the standard rate of each OS's default voices.">?</span>
-            </div>
-        </fieldset>
-    </div>
-
     <div class="left-panel">
 
         <div class="title-container">
@@ -1054,6 +960,91 @@ Adjusts the voice-call playback speed from 0.5× to 2.0×. 1.0× is tuned to the
 
         <div class="controls-group">
             <div class="top-controls">
+                <div class="app-tools">
+                    <a class="guide-link" href="bullseye_manual.html" target="_blank" rel="noopener" aria-label="Open user guide" title="User Guide / 사용설명서">📘</a>
+                    <button type="button" class="settings-toggle" id="settingsToggle" aria-label="Open settings" aria-controls="settingsPanel" aria-expanded="false" title="Settings">⚙️</button>
+
+                    <div class="settings-panel" id="settingsPanel" hidden>
+                        <div class="settings-header">
+                            <strong>Settings</strong>
+                            <label class="theme-option" title="Toggle Light/Dark Mode">
+                                <input type="checkbox" id="themeToggle">
+                                <span id="themeIcon">🌙</span> Dark mode
+                            </label>
+                        </div>
+
+                        <fieldset>
+                            <legend>Challenges</legend>
+                            <div class="plot-controls">
+                                <label><input type="checkbox" id="answerRangeMode"> Answer Range</label>
+                                <span class="help-icon" data-tooltip="내 기체와 각 타겟 사이의 거리도 함께 답합니다. 다중 그룹에서는 모든 그룹의 거리를 답합니다. 정답 허용 범위는 ±10nm입니다.
+
+Also enter the range from ownship to each target. For multiple groups, answer the range of every group. The tolerance is ±10nm.">?</span>
+                            </div>
+                            <div class="plot-controls">
+                                <label><input type="checkbox" id="aspectMode"> Track</label>
+                                <span class="help-icon" data-tooltip="음성 콜에 각 그룹의 진행 방향(track)이 추가됩니다. 내 기체에서 본 움직임을 기준으로 HOT / FLANK / BEAM / COLD 중 하나를 선택합니다.
+
+Adds each group's track to the voice call. Choose HOT, FLANK, BEAM, or COLD based on its movement relative to ownship.">?</span>
+                            </div>
+                            <div class="plot-controls">
+                                <span style="margin-right: 4px;">Groups</span>
+                                <label><input type="radio" name="groups" value="1" checked> 1</label>
+                                <label><input type="radio" name="groups" value="2"> 2</label>
+                                <label><input type="radio" name="groups" value="3"> 3</label>
+                                <span class="help-icon" data-tooltip="1은 단일 타겟 문제입니다. 2 또는 3을 선택하면 picture 콜이 나오며, 불러준 순서대로 그룹마다 한 행씩 답합니다. 동심원에 내 기체와 각 그룹을 찍는 것은 채점하지 않는 보조 수단입니다.
+
+데스크톱에서는 마우스 위치의 Bullseye 좌표를 확인하고 클릭합니다. 모바일에서는 누른 채 위치를 조정하고 손을 떼어 확정합니다.
+
+Choose 1 for a single target. With 2 or 3 groups, answer one row per group in call order. Plotting ownship and each group on the scope is an unscored aid. On desktop, check the Bullseye readout and click. On mobile, press, drag to adjust, and release to place.">?</span>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Assist</legend>
+                            <div class="plot-controls">
+                                <label><input type="checkbox" id="easyMode"> Easy</label>
+                                <span class="help-icon" data-tooltip="단일 그룹 문제에서 제출하기 전에도 동심원에 내 기체와 타겟의 실제 위치를 보여줍니다. 위치 계산을 처음 연습할 때 유용합니다.
+
+For single-group practice, shows the actual ownship and target positions on the scope before submission. Useful while learning position calculations.">?</span>
+                            </div>
+                            <div class="plot-controls">
+                                <label><input type="checkbox" id="showBraMode" checked> Show Bearing Lines</label>
+                                <span class="help-icon" data-tooltip="Bullseye에서 뻗는 추가 방위선과 방위각 숫자를 표시하거나 숨깁니다. 동서·남북 십자 실선과 빨간색 50nm·100nm Range 링은 항상 표시됩니다.
+
+Shows or hides additional bearing lines and bearing numbers radiating from Bullseye. The east-west and north-south cross lines and the red 50nm and 100nm range rings are always visible.">?</span>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Session</legend>
+                            <div class="plot-controls">
+                                <label><input type="checkbox" id="voiceMode" checked> Voice</label>
+                                <span class="help-icon" data-tooltip="Target 정보를 영어 음성 콜로 재생합니다. Voice를 끄면 Lead Time이 지난 뒤 Target 표에서 문제 정보를 직접 확인할 수 있습니다.
+
+Plays the target information as an English voice call. When Voice is off, the target table shows the problem information after Lead Time.">?</span>
+                            </div>
+                            <div class="plot-controls">
+                                <span>Voice gender</span>
+                                <span class="voice-gender-options">
+                                    <label><input type="radio" name="voiceGender" value="male"> Male</label>
+                                    <label><input type="radio" name="voiceGender" value="female" checked> Female</label>
+                                </span>
+                                <span class="help-icon" tabindex="0" data-tooltip="브라우저에 설치된 영어 음성 중 선택한 성별과 가장 잘 맞는 음성을 우선 사용합니다. 일치하는 음성이 없으면 사용 가능한 영어 음성으로 자동 대체됩니다.
+
+Prefers an installed English voice matching the selected gender. If none matches, the app automatically uses another available English voice.">?</span>
+                            </div>
+                            <div class="plot-controls">
+                                <label for="voiceRate">Voice speed</label>
+                                <input type="range" id="voiceRate" class="voice-rate-input" value="1.0" min="0.5" max="2.0" step="0.1">
+                                <output id="voiceRateValue" for="voiceRate">1.0×</output>
+                                <span class="help-icon" tabindex="0" data-tooltip="음성 콜의 재생 속도를 0.5×~2.0× 사이에서 조절합니다. 1.0×는 운영체제별 기본 음성의 표준 속도에 맞춰져 있습니다.
+
+Adjusts the voice-call playback speed from 0.5× to 2.0×. 1.0× is tuned to the standard rate of each OS's default voices.">?</span>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
                 <div style="display: flex; align-items: center; margin-left: auto;">
                     <span id="rateDisplay">Score: 0% (0/0)</span>
                 </div>
