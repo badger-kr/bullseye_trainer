@@ -1138,9 +1138,9 @@ Sets how long you can review Own Bullseye before the target information and voic
                 </div>
                 <div class="posit-option-row">
                     <label><input type="checkbox" id="fixOwnBullseye"> Fix Own Bullseye</label>
-                    <span class="help-icon" tabindex="0" data-tooltip="다음 문제를 생성해도 현재 Own Bullseye 위치를 그대로 유지합니다. 같은 위치에서 여러 콜을 연속으로 연습할 때 사용합니다. 켜면 Own Bullseye가 바로 표시되고, 문제가 없을 때 끄면 비워집니다.
+                    <span class="help-icon" tabindex="0" data-tooltip="다음 문제를 생성해도 현재 Own Bullseye 위치를 그대로 유지합니다. 같은 위치에서 여러 콜을 연속으로 연습할 때 사용합니다. 켜면 Own Bullseye가 바로 표시되고, 문제가 없을 때 끄면 비워집니다. 채점 후에 끄면 새 Own Bullseye가 바로 표시되어 다음 문제에 쓰입니다.
 
-Keeps the current Own Bullseye position when generating the next problem. Useful for practicing several calls from one location. Turning it on shows Own Bullseye immediately, and turning it off clears it when no problem is active.">?</span>
+Keeps the current Own Bullseye position when generating the next problem. Useful for practicing several calls from one location. Turning it on shows Own Bullseye immediately, and turning it off clears it when no problem is active. Turning it off after grading shows a new Own Bullseye for the next problem.">?</span>
                 </div>
             </div>
 
@@ -1798,7 +1798,12 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
             problemAspectOn = document.getElementById('aspectMode').checked;
 
             const isFixOwn = document.getElementById('fixOwnBullseye').checked;
-            if (!isFixOwn || myData.rng === 0) randomizeOwnBullseye();
+            if (nextOwnData) {
+                myData = nextOwnData;
+                nextOwnData = null;
+            } else if (!isFixOwn || myData.rng === 0) {
+                randomizeOwnBullseye();
+            }
 
             if (currentGroups === 1) {
                 groupsData = [];
@@ -1856,14 +1861,24 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         countdown.classList.add('countdown-pop');
     }
 
+    // 채점 후 Fix Own Bullseye를 끄면 정해 두는 다음 문제용 Own Bullseye (현재 결과 화면의 myData는 그대로 둔다)
+    let nextOwnData = null;
+
+    function randomOwnPosit() {
+        return {
+            brg: Math.floor(Math.random() * 361),
+            rng: Math.floor(Math.random() * (MAX_RANGE - MIN_RANGE + 1)) + MIN_RANGE
+        };
+    }
+
     function randomizeOwnBullseye() {
-        myData.brg = Math.floor(Math.random() * 361);
-        myData.rng = Math.floor(Math.random() * (MAX_RANGE - MIN_RANGE + 1)) + MIN_RANGE;
+        myData = randomOwnPosit();
     }
 
     function renderOwnBullseye() {
-        document.getElementById('myPosit').innerText = myData.rng > 0
-            ? `${myData.brg}° | ${myData.rng} nm`
+        const own = nextOwnData || myData;
+        document.getElementById('myPosit').innerText = own.rng > 0
+            ? `${own.brg}° | ${own.rng} nm`
             : '---° | -- nm';
     }
 
@@ -1880,6 +1895,11 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         } else if (!hasActiveProblem()) {
             myData = { brg: 0, rng: 0 };
             renderOwnBullseye();
+        } else if (isChecked) {
+            // 채점이 끝났으면 결과(레이더·표)는 유지하고 새 Own Bullseye를 바로 보여 준다
+            nextOwnData = randomOwnPosit();
+            renderOwnBullseye();
+            flashOwnBullseye();
         }
     });
 
