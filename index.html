@@ -910,7 +910,7 @@
 For a single-group problem, also enter the range from ownship to the target. The tolerance is ±10nm.">?</span>
             </div>
             <div class="plot-controls">
-                <label><input type="checkbox" id="aspectMode"> Aspect</label>
+                <label><input type="checkbox" id="aspectMode"> Track</label>
                 <span class="help-icon" data-tooltip="음성 콜에 각 그룹의 진행 방향(track)이 추가됩니다. 내 기체에서 본 움직임을 기준으로 HOT / FLANK / BEAM / COLD 중 하나를 선택합니다.
 
 Adds each group's track to the voice call. Choose HOT, FLANK, BEAM, or COLD based on its movement relative to ownship.">?</span>
@@ -1058,9 +1058,9 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
     </div>
 
     <fieldset id="answerFieldset">
-        <legend>Answer <span class="help-icon" tabindex="0" data-tooltip="단일 그룹에서는 내 기체에서 타겟으로 향하는 방위와 타겟 고도를 입력합니다. 설정에 따라 거리와 aspect도 답합니다. 다중 그룹에서는 동심원에 내 기체를 먼저 찍고, 불러준 순서대로 모든 그룹을 찍은 뒤 질문받은 고도와 각 그룹의 aspect를 답합니다.
+        <legend>Answer <span class="help-icon" tabindex="0" data-tooltip="단일 그룹에서는 내 기체에서 타겟으로 향하는 방위와 타겟 고도를 입력합니다. 설정에 따라 거리와 track도 답합니다. 다중 그룹에서는 동심원에 내 기체를 먼저 찍고, 불러준 순서대로 모든 그룹을 찍은 뒤 질문받은 고도와 각 그룹의 track을 답합니다.
 
-For one group, enter the bearing from ownship to target and the target altitude, plus range or aspect when enabled. For multiple groups, plot ownship and every group in call order, then answer the requested altitude and each group's aspect.">?</span></legend>
+For one group, enter the bearing from ownship to target and the target altitude, plus range or track when enabled. For multiple groups, plot ownship and every group in call order, then answer the requested altitude and each group's track.">?</span></legend>
         <div class="input-row" id="bearingRow">
             <label for="inputBearing" id="bearingLabel">Enter the bearing from ownship to target</label>
             <input type="number" id="inputBearing" inputmode="numeric" pattern="[0-9]*" placeholder="000">
@@ -2282,8 +2282,8 @@ For one group, enter the bearing from ownship to target and the target altitude,
         const instruction = document.createElement('div');
         instruction.className = 'answer-instruction';
         instruction.innerText = count === 1
-            ? 'Choose the aspect of the target'
-            : 'Choose the aspect of each group';
+            ? 'Choose the track of the target'
+            : 'Choose the track of each group';
         area.appendChild(instruction);
 
         for (let i = 0; i < count; i++) {
@@ -2340,7 +2340,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
                 }
             }
             if (problemAspectOn && !userAspectAnswers[0]) {
-                alert("Aspect를 선택해주세요.\nPlease select Aspect.");
+                alert("Track을 선택해주세요.\nPlease select Track.");
                 return;
             }
 
@@ -2373,7 +2373,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
                 const actual = classifyAspect(aspectAngle(positToXY(tgtData.brg, tgtData.rng), tgtData.hdg));
                 itemResults.push({
                     type: 'aspect',
-                    label: 'Aspect',
+                    label: 'Track',
                     ok: userAspectAnswers[0] === actual,
                     userAns: userAspectAnswers[0],
                     correctAns: actual
@@ -2392,7 +2392,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
                 return;
             }
             if (problemAspectOn && userAspectAnswers.some(a => !a)) {
-                alert("모든 그룹의 Aspect를 선택해주세요.\nPlease select Aspect for every group.");
+                alert("모든 그룹의 Track을 선택해주세요.\nPlease select Track for every group.");
                 return;
             }
 
@@ -2423,7 +2423,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
                     const actual = classifyAspect(aspectAngle({ x: g.x, y: g.y }, g.hdg));
                     itemResults.push({
                         type: 'aspect',
-                        label: 'Aspect',
+                        label: 'Track',
                         groupIndex: i,
                         ok: userAspectAnswers[i] === actual,
                         userAns: userAspectAnswers[i],
