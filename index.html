@@ -868,6 +868,16 @@
             .badger-credit { font-size: 12px; }
             .radar-column { width: min(100%, 34vh); }
         }
+
+        /* 360px급 소형 화면: 고정폭 표 내용이 열 폭을 넘지 않도록 글자를 한 단계 줄인다 */
+        @media (max-width: 380px) {
+            .data-table { font-size: 10px; }
+            .data-table th { font-size: 9px; }
+            .answer-table th { white-space: normal; }
+            /* 320px급에서는 글자가 겹치는 대신 Target 표 영역 안에서 가로 스크롤한다 */
+            .target-table { min-width: 300px; }
+            .left-panel fieldset { min-width: 0; }
+        }
     </style>
 </head>
 <body>
