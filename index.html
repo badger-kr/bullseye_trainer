@@ -1053,6 +1053,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     const btnUndoPlot = document.getElementById('btnUndoPlot');
     const btnRangeRings = document.getElementById('btnRangeRings');
 
+    const CANVAS_SIZE = 400;      // 그리기 좌표계 크기 (실제 픽셀 수는 devicePixelRatio배)
     const CENTER = 200;
     const RADIUS = 170;
     const MAX_RANGE = 150;
@@ -1223,6 +1224,22 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     window.addEventListener('resize', hideSettingsHelp);
     window.addEventListener('resize', alignRadarWithGenerateButtons);
 
+    // 고해상도 화면에서 흐리지 않도록 canvas 픽셀 수를 devicePixelRatio배로 늘리고 좌표계는 400 기준 유지
+    let canvasPixelRatio = 0;
+    function setupCanvasResolution() {
+        const ratio = Math.min(Math.max(window.devicePixelRatio || 1, 1), 3);
+        if (ratio === canvasPixelRatio) return false;
+        canvasPixelRatio = ratio;
+        canvas.width = Math.round(CANVAS_SIZE * ratio);
+        canvas.height = Math.round(CANVAS_SIZE * ratio);
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        return true;
+    }
+    // 브라우저 확대·모니터 이동으로 배율이 바뀌면 다시 맞춘다
+    window.addEventListener('resize', function() {
+        if (setupCanvasResolution()) drawRadar();
+    });
+
     function setSettingsOpen(isOpen) {
         settingsPanel.hidden = !isOpen;
         if (!isOpen) hideSettingsHelp();
@@ -1357,8 +1374,8 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
 
     function canvasPointFromEvent(event) {
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+        const scaleX = CANVAS_SIZE / rect.width;
+        const scaleY = CANVAS_SIZE / rect.height;
         return {
             x: (event.clientX - rect.left) * scaleX,
             y: (event.clientY - rect.top) * scaleY
@@ -1542,6 +1559,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     });
 
     function init() {
+        setupCanvasResolution();
         loadSettings();
         initVoices();
         document.getElementById('voiceRateValue').value = `${getVoiceRate().toFixed(2).replace(/0$/, '')}×`;
@@ -2521,7 +2539,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     }
 
     function drawRadar(progress = 1) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
         updateRadarCoordinateToggle();
         updateUndoPlotButton();
         updateRangeRingsToggle();
@@ -2818,8 +2836,8 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
                 }
             });
             const boxes = expandedCandidates.map(point => {
-                const centerX = Math.max(width / 2 + 3, Math.min(canvas.width - width / 2 - 3, point.x));
-                const centerY = Math.max(height / 2 + 3, Math.min(canvas.height - height / 2 - 3, point.y));
+                const centerX = Math.max(width / 2 + 3, Math.min(CANVAS_SIZE - width / 2 - 3, point.x));
+                const centerY = Math.max(height / 2 + 3, Math.min(CANVAS_SIZE - height / 2 - 3, point.y));
                 return {
                     centerX,
                     centerY,
