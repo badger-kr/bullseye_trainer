@@ -152,7 +152,8 @@
             <li><strong>Track</strong>을 켜면 <strong>Track</strong> 드롭다운에서 각 타겟의 움직임을 HOT, FLANK, BEAM, COLD 중에서 고릅니다.</li>
             <li>빈칸이 있으면 제출되지 않고 모든 칸을 입력하라는 안내가 나옵니다.</li>
         </ul>
-        <p>레이더에 계산한 위치를 연습용으로 표시할 수 있으며, 이 플롯은 점수에 반영되지 않습니다. 첫 점은 Ownship이고, 이후 Groups 1은 Target, Groups 2·3은 콜 순서대로 각 그룹입니다. 데스크톱에서는 마우스 위치의 Bullseye 좌표를 확인한 뒤 클릭하고, 모바일에서는 누른 채 위치를 조정한 뒤 손을 떼어 확정합니다. Easy는 Groups 1에서만 사용할 수 있습니다.</p>
+        <div class="callout">레이더(동심원 방사표)는 위치를 가늠하기 위한 참고용입니다. 계산한 위치를 그 위에 찍어 볼 수 있지만 채점에는 영향을 주지 않으며, 점수는 Answer 표에 입력한 답으로만 매깁니다.</div>
+        <p>위치를 찍을 때 첫 점은 Ownship이고, 이후 Groups 1은 Target, Groups 2·3은 콜 순서대로 각 그룹입니다. 데스크톱에서는 마우스 위치의 Bullseye 좌표를 확인한 뒤 클릭하고, 모바일에서는 누른 채 위치를 조정한 뒤 손을 떼어 확정합니다. Easy는 Groups 1에서만 사용할 수 있습니다.</p>
         <p>동심원 위에 고정된 <code>BULLS 방위 / 거리</code> 상자를 누르면 좌표 보기를 켜거나 끌 수 있습니다. 상자 앞의 전원 아이콘은 이 상자가 스위치임을 나타냅니다. OFF에서는 좌표와 십자선이 숨겨지지만 위치 표시는 계속할 수 있습니다. 표시되는 좌표는 항상 동심원 중심인 Bullseye 기준입니다. 왼쪽 영역과 레이더 사이의 막대(모바일에서는 레이더 위 가로 막대)를 누르면 레이더 영역 전체를 접거나 펼칩니다. 모바일에서 세로 공간을 줄이고 싶을 때 접으면 되며, 접힌 상태에서도 Lead Time 카운트다운은 화면 가운데에 표시되고 이 설정은 저장됩니다. BULLS 상자 옆의 굵은 왼쪽 곡선 화살표 버튼은 마지막 플롯을 되돌립니다. Groups 1에서는 Target부터 Ownship 순으로, Groups 2·3에서는 가장 마지막 점부터 제거합니다. Formation과 W.LD, TR, E.LD 같은 Position 표기를 함께 보면 어떤 그룹을 답하는지 쉽게 구분할 수 있습니다.</p>
 
         <h2>정답 화면 읽는 방법</h2>
@@ -182,7 +183,7 @@
                 <tr><td>Dark mode</td><td>밝은 화면과 어두운 화면을 전환합니다.</td></tr>
                 <tr><td>Lead Time</td><td>Own Bullseye 확인 시간을 정합니다. 기본값은 켜진 상태의 3초이며 1~30초로 바꿀 수 있습니다.</td></tr>
                 <tr><td>Fix Own Bullseye</td><td>다음 문제에서도 현재 Own Bullseye 위치를 유지합니다. 켜면 Own Bullseye가 바로 표시되어 문제를 만들기 전에 위치를 익힐 수 있습니다. 문제가 없을 때 끄면 Own Bullseye가 비워지고, 문제 진행 중에 끄면 현재 문제는 그대로 두고 다음 GENERATE부터 새 위치가 나옵니다.</td></tr>
-                <tr><td>Auto refresh</td><td>정답 제출 후 설정한 시간이 지나면 새 문제를 자동으로 생성합니다.</td></tr>
+                <tr><td>Auto generate</td><td>정답 제출 후 설정한 시간이 지나면 새 문제를 자동으로 생성합니다.</td></tr>
             </tbody>
         </table>
 
@@ -222,7 +223,8 @@
             <li>When <strong>Track</strong> is enabled, choose HOT, FLANK, BEAM, or COLD for each target from the <strong>Track</strong> dropdown.</li>
             <li>If any field is empty, the answer is not submitted and a message asks you to fill in every field.</li>
         </ul>
-        <p>You can plot calculated positions on the scope for practice. Plots do not affect your score. Place Ownship first, then Target in Groups 1 or each group in call order in Groups 2 and 3. On desktop, check the Bullseye readout under the mouse and click. On mobile, press, drag to adjust the position, and release to place it. Easy is available only with Groups 1.</p>
+        <div class="callout">The radar scope is a reference for judging positions. You can plot your calculated positions on it, but plots do not affect scoring. Your score comes only from the answers entered in the Answer table.</div>
+        <p>When plotting, place Ownship first, then Target in Groups 1 or each group in call order in Groups 2 and 3. On desktop, check the Bullseye readout under the mouse and click. On mobile, press, drag to adjust the position, and release to place it. Easy is available only with Groups 1.</p>
         <p>Select the fixed <code>BULLS bearing / range</code> box above the scope to toggle coordinate viewing. The power icon at the start of the box indicates that it is a switch. When OFF, the coordinates and crosshair are hidden, but position plotting remains available. The displayed coordinates are always measured from Bullseye at the center of the scope. Select the bar between the left pane and the radar (a horizontal bar above the radar on mobile) to collapse or expand the whole radar pane. Collapse it to save vertical space on mobile. The Lead Time countdown still appears in the middle of the screen while collapsed, and this setting is saved. The bold left-curved-arrow button beside BULLS undoes the last plot. In Groups 1, it removes Target before Ownship. In Groups 2 and 3, it removes the most recent point. Formation and Position labels such as W.LD, TR, and E.LD help identify each group.</p>
 
         <h2>Reading the result</h2>
@@ -252,7 +254,7 @@
                 <tr><td>Dark mode</td><td>Switches between the light and dark display.</td></tr>
                 <tr><td>Lead Time</td><td>Sets the Own Bullseye review time. It defaults to enabled at three seconds and can be set from 1 to 30 seconds.</td></tr>
                 <tr><td>Fix Own Bullseye</td><td>Keeps the current Own Bullseye position for the next problem. Turning it on shows Own Bullseye immediately so you can learn the position before generating a problem. Turning it off clears Own Bullseye when no problem is active. If a problem is active, that problem stays as is and a new position starts from the next GENERATE.</td></tr>
-                <tr><td>Auto refresh</td><td>Generates a new problem after the selected delay following submission.</td></tr>
+                <tr><td>Auto generate</td><td>Generates a new problem after the selected delay following submission.</td></tr>
             </tbody>
         </table>
 
