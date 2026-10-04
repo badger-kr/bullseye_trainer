@@ -264,7 +264,7 @@
             background-color: var(--muted-color);
         }
         .radar-undo-button,
-        .radar-rings-toggle {
+        .radar-view-toggle {
             box-sizing: border-box;
             width: 29px;
             height: 25px;
@@ -291,14 +291,14 @@
             margin: auto;
             fill: currentColor;
         }
-        .radar-rings-toggle {
+        .radar-view-toggle {
             border-color: #e74c3c;
         }
-        .radar-rings-toggle[aria-pressed="false"] {
+        .radar-view-toggle[aria-pressed="false"] {
             border-color: var(--muted-color);
             color: var(--muted-color);
         }
-        .radar-rings-toggle svg {
+        .radar-view-toggle svg {
             display: block;
             width: 17px;
             height: 17px;
@@ -307,9 +307,19 @@
             stroke: currentColor;
             stroke-width: 2;
         }
-        .radar-rings-toggle .ring-center {
+        .radar-view-toggle .ring-center {
             fill: currentColor;
             stroke: none;
+        }
+        /* 레이더 접힘: canvas와 레이더 전용 버튼을 숨겨 모바일 세로 공간을 줄인다 */
+        .radar-column.radar-collapsed canvas,
+        .radar-column.radar-collapsed .radar-coordinate-toggle,
+        .radar-column.radar-collapsed .radar-undo-button {
+            display: none;
+        }
+        /* 접힌 상태에서도 Lead Time 카운트다운은 보이도록 그 동안만 영역을 확보한다 */
+        .radar-column.radar-collapsed .radar-stage:has(.call-countdown:not([hidden])) {
+            height: 84px;
         }
         .call-countdown {
             position: absolute;
@@ -1051,10 +1061,10 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
     </div>
 
     <div class="right-panel">
-        <div class="radar-column">
+        <div class="radar-column" id="radarColumn">
             <div class="radar-toolbar">
                     <button type="button" id="radarCoordinateToggle" class="radar-coordinate-toggle" aria-pressed="true" aria-label="Turn Bullseye coordinate view off">BULLS ---° / -- nm</button>
-                    <button type="button" id="btnRangeRings" class="radar-rings-toggle" aria-pressed="true" title="Hide range rings" aria-label="Hide range rings">
+                    <button type="button" id="btnRadarView" class="radar-view-toggle" aria-pressed="true" aria-controls="radarStage" title="Hide radar" aria-label="Hide radar">
                         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                             <circle cx="12" cy="12" r="10"></circle>
                             <circle cx="12" cy="12" r="5.5"></circle>
@@ -1067,7 +1077,7 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
                         </svg>
                     </button>
             </div>
-            <div class="radar-stage">
+            <div class="radar-stage" id="radarStage">
                 <canvas id="radarCanvas" width="400" height="400"></canvas>
                 <div id="callCountdown" class="call-countdown" aria-live="assertive" hidden></div>
             </div>
@@ -1099,7 +1109,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     const ctx = canvas.getContext('2d');
     const radarCoordinateToggle = document.getElementById('radarCoordinateToggle');
     const btnUndoPlot = document.getElementById('btnUndoPlot');
-    const btnRangeRings = document.getElementById('btnRangeRings');
+    const btnRadarView = document.getElementById('btnRadarView');
 
     const CANVAS_SIZE = 400;      // 그리기 좌표계 크기 (실제 픽셀 수는 devicePixelRatio배)
     const CENTER = 200;
@@ -1137,7 +1147,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     let userTgtPos = null;
     let radarPointerPos = null;
     let isRadarCoordinateViewOn = true;
-    let isRangeRingsOn = true;
+    let isRadarVisible = true;
     let activeRadarPointerId = null;
     let ignoreCanvasClickUntil = 0;
     let radarPointerHideTimeout = null;
@@ -1482,16 +1492,18 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         drawRadar();
     });
 
-    function updateRangeRingsToggle() {
-        const label = isRangeRingsOn ? 'Hide range rings' : 'Show range rings';
-        btnRangeRings.setAttribute('aria-pressed', String(isRangeRingsOn));
-        btnRangeRings.setAttribute('aria-label', label);
-        btnRangeRings.title = label;
+    function applyRadarVisibility() {
+        const label = isRadarVisible ? 'Hide radar' : 'Show radar';
+        document.getElementById('radarColumn').classList.toggle('radar-collapsed', !isRadarVisible);
+        btnRadarView.setAttribute('aria-pressed', String(isRadarVisible));
+        btnRadarView.setAttribute('aria-label', label);
+        btnRadarView.title = label;
+        alignRadarWithGenerateButtons();
     }
 
-    btnRangeRings.addEventListener('click', function() {
-        isRangeRingsOn = !isRangeRingsOn;
-        drawRadar();
+    btnRadarView.addEventListener('click', function() {
+        isRadarVisible = !isRadarVisible;
+        applyRadarVisibility();
         saveSettings();
     });
 
@@ -1609,6 +1621,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     function init() {
         setupCanvasResolution();
         loadSettings();
+        applyRadarVisibility();
         initVoices();
         document.getElementById('voiceRateValue').value = `${getVoiceRate().toFixed(2).replace(/0$/, '')}×`;
         updateLeadTimeControl();
@@ -1633,7 +1646,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
 
         const leftPanelTop = document.querySelector('.left-panel').getBoundingClientRect().top;
         const generateTop = document.getElementById('btnGenerate').getBoundingClientRect().top;
-        const canvasOffset = canvas.getBoundingClientRect().top - radarPanel.getBoundingClientRect().top;
+        const canvasOffset = document.getElementById('radarStage').getBoundingClientRect().top - radarPanel.getBoundingClientRect().top;
         radarPanel.style.marginTop = `${Math.max(0, Math.round(generateTop - leftPanelTop - canvasOffset))}px`;
     }
 
@@ -2199,7 +2212,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
             answerRange: document.getElementById('answerRangeMode').checked,
             aspect: document.getElementById('aspectMode').checked,
             groups: getGroupsSetting(),
-            rangeRings: isRangeRingsOn,
+            radarVisible: isRadarVisible,
             dark: document.body.classList.contains('dark-mode')
         };
         try {
@@ -2221,7 +2234,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
             setCheck('autoRefreshMode', saved.autoRefresh);
             setCheck('leadTimeMode', saved.leadTimeEnabled);
             setCheck('fixOwnBullseye', saved.fixOwn);
-            if (typeof saved.rangeRings === 'boolean') isRangeRingsOn = saved.rangeRings;
+            if (typeof saved.radarVisible === 'boolean') isRadarVisible = saved.radarVisible;
             setCheck('answerRangeMode', saved.answerRange);
             setCheck('aspectMode', saved.aspect);
             if (saved.refreshInterval) document.getElementById('refreshInterval').value = saved.refreshInterval;
@@ -2590,11 +2603,10 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
         updateRadarCoordinateToggle();
         updateUndoPlotButton();
-        updateRangeRingsToggle();
 
         const showBearingLines = document.getElementById('showBraMode').checked;
 
-        if (isRangeRingsOn) [50, 100].forEach(rng => {
+        [50, 100].forEach(rng => {
             ctx.beginPath();
             ctx.arc(CENTER, CENTER, rng * SCALE, 0, 2 * Math.PI);
             ctx.strokeStyle = themeColors.highlightRange;
@@ -2679,7 +2691,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         ctx.textAlign = "left";
         ctx.textBaseline = "bottom";
 
-        const labelRanges = isRangeRingsOn ? [50, 100] : [];
+        const labelRanges = [50, 100];
         labelRanges.forEach(rng => {
             const dist = rng * SCALE;
             const text = rng.toString();
