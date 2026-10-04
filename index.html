@@ -1077,9 +1077,9 @@ Sets how long you can review Own Bullseye before the target information and voic
                 </div>
                 <div class="posit-option-row">
                     <label><input type="checkbox" id="fixOwnBullseye"> Fix Own Bullseye</label>
-                    <span class="help-icon" tabindex="0" data-tooltip="다음 문제를 생성해도 현재 Own Bullseye 위치를 그대로 유지합니다. 같은 위치에서 여러 콜을 연속으로 연습할 때 사용합니다.
+                    <span class="help-icon" tabindex="0" data-tooltip="다음 문제를 생성해도 현재 Own Bullseye 위치를 그대로 유지합니다. 같은 위치에서 여러 콜을 연속으로 연습할 때 사용합니다. 켜면 Own Bullseye가 바로 표시되고, 문제가 없을 때 끄면 비워집니다.
 
-Keeps the current Own Bullseye position when generating the next problem. Useful for practicing several calls from one location.">?</span>
+Keeps the current Own Bullseye position when generating the next problem. Useful for practicing several calls from one location. Turning it on shows Own Bullseye immediately, and turning it off clears it when no problem is active.">?</span>
                 </div>
             </div>
 
@@ -1500,7 +1500,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         let nextPointLabel = '';
         if (currentGroups > 1 && userClicks.length < groupsData.length + 1) {
             nextPointLabel = `${userClicks.length === 0 ? 'OWN' : `G${userClicks.length}`} · `;
-        } else if (currentGroups === 1 && myData.rng > 0 && !isChecked) {
+        } else if (currentGroups === 1 && myData.rng > 0 && tgtData.rng > 0 && !isChecked) {
             nextPointLabel = `${!userMyPos || userTgtPos ? 'OWN' : 'TGT'} · `;
         }
         return `${nextPointLabel}BULLS ${displayBearing.toString().padStart(3, '0')}° / ${posit.rng} nm`;
@@ -1652,6 +1652,10 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     function init() {
         setupCanvasResolution();
         loadSettings();
+        if (document.getElementById('fixOwnBullseye').checked) {
+            randomizeOwnBullseye();
+            renderOwnBullseye();
+        }
         applyRadarVisibility();
         initVoices();
         document.getElementById('voiceRateValue').value = `${getVoiceRate().toFixed(2).replace(/0$/, '')}×`;
@@ -1709,10 +1713,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
             problemAspectOn = document.getElementById('aspectMode').checked;
 
             const isFixOwn = document.getElementById('fixOwnBullseye').checked;
-            if (!isFixOwn || myData.rng === 0) {
-                myData.brg = Math.floor(Math.random() * 361);
-                myData.rng = Math.floor(Math.random() * (MAX_RANGE - MIN_RANGE + 1)) + MIN_RANGE;
-            }
+            if (!isFixOwn || myData.rng === 0) randomizeOwnBullseye();
 
             if (currentGroups === 1) {
                 groupsData = [];
@@ -1732,9 +1733,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
             }
             syncRadarPointerMode();
 
-            const myPositEl = document.getElementById('myPosit');
-            myPositEl.innerText = `${myData.brg}° | ${myData.rng} nm`;
-            myPositEl.style.opacity = '1';
+            renderOwnBullseye();
 
             document.getElementById('answerTable').replaceChildren();
             updateInputUI();
@@ -1771,6 +1770,33 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         void countdown.offsetWidth;
         countdown.classList.add('countdown-pop');
     }
+
+    function randomizeOwnBullseye() {
+        myData.brg = Math.floor(Math.random() * 361);
+        myData.rng = Math.floor(Math.random() * (MAX_RANGE - MIN_RANGE + 1)) + MIN_RANGE;
+    }
+
+    function renderOwnBullseye() {
+        document.getElementById('myPosit').innerText = myData.rng > 0
+            ? `${myData.brg}° | ${myData.rng} nm`
+            : '---° | -- nm';
+    }
+
+    function hasActiveProblem() {
+        return currentGroups > 1 ? groupsData.length > 0 : (tgtData.rng !== 0 || tgtData.brg !== 0);
+    }
+
+    // Fix Own Bullseye: 켜면 Own Bullseye를 바로 보여 주고, 문제가 없을 때 끄면 비운다
+    document.getElementById('fixOwnBullseye').addEventListener('change', function() {
+        if (this.checked) {
+            if (myData.rng === 0) randomizeOwnBullseye();
+            renderOwnBullseye();
+            flashOwnBullseye();
+        } else if (!hasActiveProblem()) {
+            myData = { brg: 0, rng: 0 };
+            renderOwnBullseye();
+        }
+    });
 
     function flashOwnBullseye() {
         const myPositEl = document.getElementById('myPosit');
