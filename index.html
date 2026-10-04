@@ -762,44 +762,42 @@
             text-decoration: underline;
             text-underline-offset: 2px;
         }
+        /* 결과 표: 답안 표와 같은 칸 배치, 칸마다 ✓/✕와 정답 */
         .result-table {
-            table-layout: auto;
             font-family: 'Segoe UI', Tahoma, sans-serif;
-            font-size: 12px;
+            font-size: 13px;
         }
-        .result-table th:nth-child(2),
-        .result-table td:nth-child(2) {
-            width: 58px;
+        .result-table .result-group-col {
+            width: 34px;
         }
-        .result-table th:nth-child(3),
-        .result-table th:nth-child(4) {
-            width: 27%;
+        .result-table td {
+            padding: 5px 2px;
+            line-height: 1.3;
         }
-        .result-table td:first-child {
-            text-align: left;
+        .result-table td.result-wrong {
+            background-color: rgba(231, 76, 60, 0.1);
         }
-        .result-group-heading th {
-            padding: 6px 8px;
-            text-align: left;
-            background-color: rgba(231, 76, 60, 0.12);
-            color: var(--text-color);
-            font-size: 11px;
-        }
-        .result-status {
-            display: inline-flex;
-            width: 18px;
-            height: 18px;
-            align-items: center;
-            justify-content: center;
-            font-size: 17px;
+        .result-mark {
+            margin-right: 3px;
             font-weight: 900;
-            line-height: 1;
         }
-        .result-correct {
+        .result-right .result-mark {
             color: #27ae60;
         }
-        .result-incorrect {
+        .result-wrong .result-mark,
+        .result-wrong .result-user {
             color: #e74c3c;
+        }
+        .result-answer {
+            display: block;
+            font-size: 12px;
+        }
+        .result-right .result-answer {
+            color: var(--muted-color);
+        }
+        .result-wrong .result-answer {
+            color: var(--text-color);
+            font-weight: bold;
         }
 
         /* GENERATE + SAY AGAIN 한 행 배치 */
@@ -2506,71 +2504,76 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         startCountdown();
     }
 
+    // 결과 표: 답안 표와 같은 행·열에 칸마다 ✓/✕, 틀리면 "→ 정답", 허용 오차 안에서 맞으면 (정답)
+    const RESULT_COLUMNS = [
+        { type: 'bearing', header: 'Bearing' },
+        { type: 'range', header: 'Range nm' },
+        { type: 'altitude', header: 'Alt ft' },
+        { type: 'aspect', header: 'Track' }
+    ];
+
     function renderResultTable(results) {
         const resultBox = document.getElementById('resultBox');
         const table = document.createElement('table');
         table.className = 'data-table result-table';
 
+        const rowCount = currentGroups > 1 ? groupsData.length : 1;
+        const showGroupColumn = rowCount > 1;
+        const columns = RESULT_COLUMNS.filter(column => results.some(result => result.type === column.type));
+        const compact = text => (text || '—').replace(/ (ft|nm)$/, '');
+
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
-        ['Item', 'Result', 'Your answer', 'Correct answer'].forEach(label => {
+        if (showGroupColumn) {
             const th = document.createElement('th');
-            th.textContent = label;
+            th.className = 'result-group-col';
+            th.textContent = '#';
+            headerRow.appendChild(th);
+        }
+        columns.forEach(column => {
+            const th = document.createElement('th');
+            th.textContent = column.header;
             headerRow.appendChild(th);
         });
         thead.appendChild(headerRow);
-        table.appendChild(thead);
 
         const tbody = document.createElement('tbody');
-        const appendResultRow = result => {
-            const row = document.createElement('tr');
-            const labelCell = document.createElement('td');
-            labelCell.textContent = result.label;
+        for (let i = 0; i < rowCount; i++) {
+            const tr = document.createElement('tr');
+            if (showGroupColumn) {
+                const td = document.createElement('td');
+                const badge = document.createElement('span');
+                badge.className = 'group-number-badge';
+                badge.textContent = i + 1;
+                td.appendChild(badge);
+                tr.appendChild(td);
+            }
+            columns.forEach(column => {
+                const result = results.find(item => item.type === column.type &&
+                    (showGroupColumn ? item.groupIndex === i : true));
+                const td = document.createElement('td');
+                td.className = result.ok ? 'result-right' : 'result-wrong';
 
-            const statusCell = document.createElement('td');
-            const status = document.createElement('span');
-            status.className = `result-status ${result.ok ? 'result-correct' : 'result-incorrect'}`;
-            status.textContent = result.ok ? '●' : '✕';
-            status.setAttribute('aria-label', result.ok ? 'Correct' : 'Incorrect');
-            statusCell.appendChild(status);
+                const mark = document.createElement('span');
+                mark.className = 'result-mark';
+                mark.textContent = result.ok ? '✓' : '✕';
+                mark.setAttribute('aria-label', result.ok ? 'Correct' : 'Incorrect');
+                const user = document.createElement('span');
+                user.className = 'result-user';
+                user.textContent = compact(result.userAns);
+                td.append(mark, user);
 
-            const userAnswerCell = document.createElement('td');
-            userAnswerCell.textContent = result.userAns || '—';
-            const correctAnswerCell = document.createElement('td');
-            correctAnswerCell.textContent = result.correctAns || '—';
-            row.append(labelCell, statusCell, userAnswerCell, correctAnswerCell);
-            tbody.appendChild(row);
-        };
-
-        const appendGroupHeading = (label, number) => {
-            const row = document.createElement('tr');
-            row.className = 'result-group-heading';
-            const cell = document.createElement('th');
-            cell.colSpan = 4;
-            cell.scope = 'rowgroup';
-            const groupLabel = document.createElement('span');
-            groupLabel.className = 'group-label';
-            const badge = document.createElement('span');
-            badge.className = 'group-number-badge';
-            badge.textContent = number;
-            groupLabel.appendChild(badge);
-            const text = document.createElement('span');
-            text.textContent = label;
-            groupLabel.appendChild(text);
-            cell.appendChild(groupLabel);
-            row.appendChild(cell);
-            tbody.appendChild(row);
-        };
-
-        if (currentGroups > 1) {
-            groupsData.forEach((group, index) => {
-                appendGroupHeading(shortLabel(group.label), index + 1);
-                results.filter(result => result.groupIndex === index).forEach(appendResultRow);
+                if (!result.ok || result.userAns !== result.correctAns) {
+                    const answer = document.createElement('span');
+                    answer.className = 'result-answer';
+                    answer.textContent = result.ok ? `(${compact(result.correctAns)})` : `→ ${compact(result.correctAns)}`;
+                    td.appendChild(answer);
+                }
+                tr.appendChild(td);
             });
-        } else {
-            results.forEach(appendResultRow);
+            tbody.appendChild(tr);
         }
-        table.appendChild(tbody);
+        table.append(thead, tbody);
         resultBox.replaceChildren(table);
     }
 
