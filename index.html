@@ -1277,7 +1277,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
 
     // iOS Enhanced 음성(Aaron·Evan·Nathan / Allison·Ava·Joelle·Nicky·Noelle·Samantha)을 포함한 성별 후보
     const VOICE_GENDER_HINTS = {
-        male: ['aaron', 'evan', 'nathan', 'alex', 'daniel', 'david', 'guy', 'eric', 'matthew', 'joey', 'justin', 'brian', 'arthur', 'roger', 'ryan', 'christopher', 'liam', 'mark'],
+        male: ['aaron', 'evan', 'nathan', 'alex', 'daniel', 'david', 'guy', 'eric', 'matthew', 'joey', 'justin', 'brian', 'arthur', 'roger', 'ryan', 'christopher', 'liam', 'mark', 'gordon', 'rishi'],
         female: ['samantha', 'ava', 'allison', 'joelle', 'noelle', 'nicky', 'victoria', 'karen', 'susan', 'zira', 'aria', 'jenny', 'joanna', 'kimberly', 'salli', 'ivy', 'emma', 'olivia', 'michelle', 'sonia', 'natasha', 'google us english']
     };
     // Apple 기계음·효과음 음성은 발음이 부정확해 후보에서 뺀다
@@ -1324,13 +1324,19 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
 
         const englishVoices = voices.filter(voice =>
             voice.lang.toLowerCase().startsWith('en') && !isLowQualityVoice(voice));
-        const enUS = englishVoices.filter(voice => voice.lang.toLowerCase().includes('en-us'));
-        const candidates = enUS.length > 0 ? enUS : englishVoices;
+        const isUS = voice => voice.lang.toLowerCase().replace('_', '-').startsWith('en-us');
         const gender = getVoiceGenderSetting();
-        const genderMatches = candidates.filter(voice =>
-            VOICE_GENDER_HINTS[gender].some(hint => voice.name.toLowerCase().includes(hint))
-        );
-        const preferred = genderMatches.length > 0 ? genderMatches : candidates;
+        const matchesGender = voice =>
+            VOICE_GENDER_HINTS[gender].some(hint => voice.name.toLowerCase().includes(hint));
+        // 성별 일치를 지역보다 우선한다: 미국 영어 성별 일치 → 다른 영어 성별 일치 → 미국 영어 → 모든 영어
+        // (iPhone 기본 미국 영어 남성 음성은 기계음뿐이라 영국·호주 남성 음성으로 넘어가야 한다)
+        const tiers = [
+            englishVoices.filter(voice => isUS(voice) && matchesGender(voice)),
+            englishVoices.filter(matchesGender),
+            englishVoices.filter(isUS),
+            englishVoices
+        ];
+        const preferred = tiers.find(tier => tier.length > 0) || [];
         myVoice = preferred.sort((a, b) => voiceQualityScore(b) - voiceQualityScore(a))[0] || null;
         updateCurrentVoiceLabel();
     }
