@@ -946,11 +946,11 @@ Prefers an installed English voice matching the selected gender. If none matches
             </div>
             <div class="plot-controls">
                 <label for="voiceRate">Voice speed</label>
-                <input type="range" id="voiceRate" class="voice-rate-input" value="1.0" min="0.7" max="1.2" step="0.05">
+                <input type="range" id="voiceRate" class="voice-rate-input" value="1.0" min="0.5" max="2.0" step="0.1">
                 <output id="voiceRateValue" for="voiceRate">1.0×</output>
-                <span class="help-icon" tabindex="0" data-tooltip="음성 콜의 재생 속도를 조절합니다. 기본값 1.0×는 이전 버전의 0.7×와 같은 실제 속도입니다.
+                <span class="help-icon" tabindex="0" data-tooltip="음성 콜의 재생 속도를 0.5×~2.0× 사이에서 조절합니다. 1.0×는 운영체제별 기본 음성의 표준 속도에 맞춰져 있습니다.
 
-Adjusts the voice-call playback speed. The default 1.0× has the same actual rate as 0.7× in the previous version.">?</span>
+Adjusts the voice-call playback speed from 0.5× to 2.0×. 1.0× is tuned to the standard rate of each OS's default voices.">?</span>
             </div>
         </fieldset>
     </div>
@@ -1119,7 +1119,8 @@ For one group, enter the bearing from ownship to target and the target altitude,
     let isTargetCallPending = false;
 
     const DEFAULT_LEAD_TIME_SECONDS = 3;
-    const SPEECH_RATE_SCALE = 0.7;
+    // Apple 음성은 같은 rate에서 더 빠르게 들리므로 1.0×의 기준 rate를 낮춘다
+    const SPEECH_BASE_RATE = /Macintosh|iPhone|iPad|iPod/.test(navigator.userAgent) ? 0.7 : 1.0;
 
     let themeColors = {};
     function updateThemeColors() {
@@ -1907,7 +1908,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
     }
 
     function getSpeechSynthesisRate() {
-        return getVoiceRate() * SPEECH_RATE_SCALE;
+        return getVoiceRate() * SPEECH_BASE_RATE;
     }
 
     function playUtterances(segments) {
