@@ -195,6 +195,12 @@
             font-size: 15px;
             color: #e67e22;
         }
+        /* Windows는 국기 이모지를 그리지 못하므로 SVG 태극기를 쓴다 */
+        .flag-kr {
+            width: 1.35em;
+            height: 0.9em;
+            vertical-align: -0.1em;
+        }
 
         .right-panel {
             grid-area: radar;
@@ -240,14 +246,20 @@
             border-color: var(--muted-color);
             color: var(--muted-color);
         }
+        /* 전원 기호(⏻) 글리프가 없는 OS에서도 보이도록 SVG mask로 그린다 */
         .radar-coordinate-toggle::before {
-            content: '⏻';
+            content: '';
+            display: inline-block;
+            width: 13px;
+            height: 13px;
             margin-right: 5px;
-            color: #f1c40f;
-            font-size: 14px;
+            vertical-align: -2px;
+            background-color: #f1c40f;
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M12 3v8'/%3E%3Cpath d='M6.6 6.4a8 8 0 1 0 10.8 0'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M12 3v8'/%3E%3Cpath d='M6.6 6.4a8 8 0 1 0 10.8 0'/%3E%3C/svg%3E") center / contain no-repeat;
         }
         .radar-coordinate-toggle[aria-pressed="false"]::before {
-            color: var(--muted-color);
+            background-color: var(--muted-color);
         }
         .radar-undo-button,
         .radar-rings-toggle {
@@ -856,6 +868,29 @@
     </style>
 </head>
 <body>
+<svg width="0" height="0" style="position: absolute;" aria-hidden="true" focusable="false">
+    <symbol id="flagKR" viewBox="-36 -24 72 48">
+        <rect x="-35.5" y="-23.5" width="71" height="47" fill="#fff" stroke="#c8c8c8"/>
+        <g transform="rotate(33.69)">
+            <circle r="12" fill="#0047a0"/>
+            <path d="M-12 0A12 12 0 0 1 12 0A6 6 0 0 0 0 0A6 6 0 0 1 -12 0Z" fill="#cd2e3a"/>
+            <g fill="#000">
+                <rect x="-26" y="-6" width="2" height="12"/><rect x="-23" y="-6" width="2" height="12"/><rect x="-20" y="-6" width="2" height="12"/>
+                <rect x="18" y="-6" width="2" height="5.5"/><rect x="18" y="0.5" width="2" height="5.5"/>
+                <rect x="21" y="-6" width="2" height="5.5"/><rect x="21" y="0.5" width="2" height="5.5"/>
+                <rect x="24" y="-6" width="2" height="5.5"/><rect x="24" y="0.5" width="2" height="5.5"/>
+            </g>
+        </g>
+        <g transform="rotate(-33.69)" fill="#000">
+            <rect x="18" y="-6" width="2" height="5.5"/><rect x="18" y="0.5" width="2" height="5.5"/>
+            <rect x="21" y="-6" width="2" height="12"/>
+            <rect x="24" y="-6" width="2" height="5.5"/><rect x="24" y="0.5" width="2" height="5.5"/>
+            <rect x="-26" y="-6" width="2" height="12"/>
+            <rect x="-23" y="-6" width="2" height="5.5"/><rect x="-23" y="0.5" width="2" height="5.5"/>
+            <rect x="-20" y="-6" width="2" height="12"/>
+        </g>
+    </symbol>
+</svg>
 
 <div class="app-container">
     <a class="guide-link" href="bullseye_manual.html" target="_blank" rel="noopener" aria-label="Open user guide" title="User Guide / 사용설명서">📘</a>
@@ -946,7 +981,7 @@ Adjusts the voice-call playback speed from 0.5× to 2.0×. 1.0× is tuned to the
 
         <div class="title-container">
             <h1>BULLSEYE TRAINER</h1>
-            <div class="subtitle"><span class="badger-credit">by Badger 🇰🇷</span> v0.21</div>
+            <div class="subtitle"><span class="badger-credit">by Badger <svg class="flag-kr" role="img" aria-label="South Korea"><use href="#flagKR"></use></svg></span> v0.21</div>
         </div>
 
         <div class="controls-group">
@@ -1040,7 +1075,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     <div id="resultBox"></div>
 
     <footer class="app-footer">
-        © 2026 Bullseye Trainer by <a href="mailto:blee.kaf001@gmail.com" aria-label="Email Badger" title="Email Badger">Badger</a> 🇰🇷
+        © 2026 Bullseye Trainer by <a href="mailto:blee.kaf001@gmail.com" aria-label="Email Badger" title="Email Badger">Badger</a> <svg class="flag-kr" role="img" aria-label="South Korea"><use href="#flagKR"></use></svg>
     </footer>
 </div>
 
