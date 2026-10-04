@@ -1018,9 +1018,9 @@ Shows or hides additional bearing lines and bearing numbers radiating from Bulls
                             <legend>Session</legend>
                             <div class="plot-controls">
                                 <label><input type="checkbox" id="voiceMode" checked> Voice</label>
-                                <span class="help-icon" data-tooltip="Target 정보를 영어 음성 콜로 재생합니다. Voice를 끄면 Lead Time이 지난 뒤 Target 표에서 문제 정보를 직접 확인할 수 있습니다.
+                                <span class="help-icon" data-tooltip="Target 정보를 영어 음성 콜로 재생합니다. Voice가 켜져 있으면 제출 전까지 Target 표가 숨겨지고, 제출하면 실제 콜 내용이 표시됩니다. Voice를 끄면 Lead Time이 지난 뒤 Target 표에서 문제 정보를 직접 확인할 수 있습니다.
 
-Plays the target information as an English voice call. When Voice is off, the target table shows the problem information after Lead Time.">?</span>
+Plays the target information as an English voice call. With Voice on, the Target table stays hidden until submission and then shows the actual call. When Voice is off, the target table shows the problem information after Lead Time.">?</span>
                             </div>
                             <div class="plot-controls">
                                 <span>Voice gender</span>
@@ -1083,7 +1083,7 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
                 </div>
             </div>
 
-            <div class="target-section-label">Target Bullseye</div>
+            <div class="target-section-label" id="tgtPositLabel">Target Bullseye</div>
             <div class="target-table-wrap" id="tgtPosit" aria-live="polite">
                 <table class="data-table target-table">
                     <thead><tr><th>Formation</th><th>Posit</th><th>Bullseye</th><th>Altitude</th><th>Track</th></tr></thead>
@@ -1917,6 +1917,11 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     }
 
     function updateTargetPositUI() {
+        // Voice가 켜져 있으면 풀이 중에는 표를 숨기고, 제출 후 실제 콜 내용을 보여 준다
+        const hideTable = document.getElementById('voiceMode').checked && !isChecked;
+        document.getElementById('tgtPositLabel').hidden = hideTable;
+        document.getElementById('tgtPosit').hidden = hideTable;
+
         if (isTargetCallPending) {
             const rowCount = currentGroups > 1 ? currentGroups : 1;
             const rows = Array.from({ length: rowCount }, () => ({
