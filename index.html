@@ -652,11 +652,24 @@
             margin-top: 6px;
             font-size: 15px;
         }
-        .input-row input {
-            width: 92px;
-            flex: 0 0 92px;
-            padding: 7px;
+        .answer-table td {
+            padding: 4px 3px;
+        }
+        .answer-table .answer-group-col {
+            width: 34px;
+        }
+        /* FLANK가 드롭다운 화살표와 함께 잘리지 않는 최소 폭 */
+        .answer-table .answer-trk-col {
+            width: 80px;
+        }
+        .answer-table input,
+        .answer-table select {
+            box-sizing: border-box;
+            width: 100%;
+            margin: 0;
+            padding: 6px 2px;
             text-align: center;
+            text-align-last: center;
             border: 1px solid var(--border-color);
             background-color: var(--input-bg);
             color: var(--text-color);
@@ -725,9 +738,6 @@
             color: var(--text-color);
             font-size: 11px;
         }
-        .result-group-heading.ownship-heading th {
-            background-color: rgba(52, 152, 219, 0.12);
-        }
         .result-status {
             display: inline-flex;
             width: 18px;
@@ -775,49 +785,8 @@
             color: var(--text-color);
         }
 
-        /* Aspect 답변 버튼 행 (HOT/FLANK/BEAM/COLD) */
-        .aspect-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            margin-top: 6px;
-        }
-        .aspect-label {
-            font-size: 12px;
-            font-weight: bold;
-            min-width: 42px;
-            text-align: right;
-            color: var(--muted-color);
-        }
-        .aspect-btn {
-            width: auto;
-            margin-top: 0;
-            padding: 6px 8px;
-            font-size: 12px;
-            font-weight: bold;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-        }
-        .aspect-btn:hover {
-            background-color: var(--border-color);
-        }
-        .aspect-btn.selected {
-            background-color: #3498db;
-            border-color: #2980b9;
-            color: #fff;
-        }
-
-        .input-row label {
-            flex: 1;
-            font-size: 13px;
-            line-height: 1.25;
-            text-align: left;
-        }
         .answer-instruction {
-            margin-top: 7px;
+            margin: 0 0 5px;
             font-size: 13px;
             text-align: center;
             color: var(--muted-color);
@@ -905,9 +874,9 @@
             <legend>Challenges</legend>
             <div class="plot-controls">
                 <label><input type="checkbox" id="answerRangeMode"> Answer Range</label>
-                <span class="help-icon" data-tooltip="단일 그룹 문제에서 내 기체와 타겟 사이의 거리도 함께 답합니다. 정답 허용 범위는 ±10nm입니다.
+                <span class="help-icon" data-tooltip="내 기체와 각 타겟 사이의 거리도 함께 답합니다. 다중 그룹에서는 모든 그룹의 거리를 답합니다. 정답 허용 범위는 ±10nm입니다.
 
-For a single-group problem, also enter the range from ownship to the target. The tolerance is ±10nm.">?</span>
+Also enter the range from ownship to each target. For multiple groups, answer the range of every group. The tolerance is ±10nm.">?</span>
             </div>
             <div class="plot-controls">
                 <label><input type="checkbox" id="aspectMode"> Track</label>
@@ -920,11 +889,11 @@ Adds each group's track to the voice call. Choose HOT, FLANK, BEAM, or COLD base
                 <label><input type="radio" name="groups" value="1" checked> 1</label>
                 <label><input type="radio" name="groups" value="2"> 2</label>
                 <label><input type="radio" name="groups" value="3"> 3</label>
-                <span class="help-icon" data-tooltip="1은 단일 타겟 문제입니다. 2 또는 3을 선택하면 picture 콜이 나오며, 동심원에 내 기체를 먼저 찍고 불러준 순서대로 각 그룹을 찍습니다. 그룹 위치의 허용 반경은 15nm입니다.
+                <span class="help-icon" data-tooltip="1은 단일 타겟 문제입니다. 2 또는 3을 선택하면 picture 콜이 나오며, 불러준 순서대로 그룹마다 한 행씩 답합니다. 동심원에 내 기체와 각 그룹을 찍는 것은 채점하지 않는 보조 수단입니다.
 
 데스크톱에서는 마우스 위치의 Bullseye 좌표를 확인하고 클릭합니다. 모바일에서는 누른 채 위치를 조정하고 손을 떼어 확정합니다.
 
-Choose 1 for a single target. With 2 or 3 groups, plot ownship first and then each group in call order. Group-position tolerance is 15nm. On desktop, check the Bullseye readout and click. On mobile, press, drag to adjust, and release to place.">?</span>
+Choose 1 for a single target. With 2 or 3 groups, answer one row per group in call order. Plotting ownship and each group on the scope is an unscored aid. On desktop, check the Bullseye readout and click. On mobile, press, drag to adjust, and release to place.">?</span>
             </div>
         </fieldset>
 
@@ -1058,22 +1027,11 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
     </div>
 
     <fieldset id="answerFieldset">
-        <legend>Answer <span class="help-icon" tabindex="0" data-tooltip="단일 그룹에서는 내 기체에서 타겟으로 향하는 방위와 타겟 고도를 입력합니다. 설정에 따라 거리와 track도 답합니다. 다중 그룹에서는 동심원에 내 기체를 먼저 찍고, 불러준 순서대로 모든 그룹을 찍은 뒤 질문받은 고도와 각 그룹의 track을 답합니다.
+        <legend>Answer <span class="help-icon" tabindex="0" data-tooltip="내 기체에서 각 타겟으로 향하는 방위(Bearing)와 타겟 고도를 표에 입력합니다. Answer Range를 켜면 거리, Track을 켜면 HOT / FLANK / BEAM / COLD도 답합니다. 다중 그룹은 불러준 순서대로 그룹마다 한 행씩 답합니다. 동심원 위치 표시는 채점하지 않는 보조 수단입니다.
 
-For one group, enter the bearing from ownship to target and the target altitude, plus range or track when enabled. For multiple groups, plot ownship and every group in call order, then answer the requested altitude and each group's track.">?</span></legend>
-        <div class="input-row" id="bearingRow">
-            <label for="inputBearing" id="bearingLabel">Enter the bearing from ownship to target</label>
-            <input type="number" id="inputBearing" inputmode="numeric" pattern="[0-9]*" placeholder="000">
-        </div>
-        <div class="input-row" id="rangeRow" style="display: none;">
-            <label for="inputRange">Enter the range from ownship to target (nm)</label>
-            <input type="number" id="inputRange" inputmode="numeric" pattern="[0-9]*" placeholder="--">
-        </div>
-        <div class="input-row" id="altRow">
-            <label for="inputAlt" id="altLabel">Enter the altitude of the target (x1,000 ft)</label>
-            <input type="number" id="inputAlt" inputmode="numeric" pattern="[0-9]*" placeholder="--">
-        </div>
-        <div id="aspectArea" style="display: none;"></div>
+Enter the bearing from ownship and the altitude of each target in the table. Also answer the range when Answer Range is on, and HOT / FLANK / BEAM / COLD when Track is on. For multiple groups, answer one row per group in call order. Plotting on the scope is an unscored aid.">?</span></legend>
+        <div class="answer-instruction" id="answerInstruction">From ownship to the target</div>
+        <table class="data-table answer-table" id="answerTable"></table>
         <div class="input-row submit-row">
             <button id="btnCheck">SUBMIT</button>
         </div>
@@ -1113,9 +1071,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
     let groupsData = [];          // 콜 순서대로 정렬된 그룹 배열 {label, x, y, brg, rng, alt, hdg}
     let pictureShape = '';        // azimuth/range/wall/ladder/vic/champagne
     let azimuthSep = 0;           // azimuth 콜에 포함할 분리 거리(nm)
-    let altQuestionIdx = 0;       // altitude 질문 대상 그룹 인덱스
     let userClicks = [];          // 플로팅 클릭 (첫번째=ownship)
-    let userAspectAnswers = [];   // 그룹별 aspect 답 선택
     let lastUtterances = [];      // Say Again용 마지막 콜
     let itemResults = [];         // 항목별 채점 결과 {type, label, ok, userAns, correctAns, groupIndex}
     let problemAspectOn = false;  // 문제 생성 시점의 Aspect 토글 스냅샷
@@ -1391,14 +1347,12 @@ For one group, enter the bearing from ownship to target and the target altitude,
         playUtterances(lastUtterances);
     });
 
-    ['inputBearing', 'inputRange', 'inputAlt'].forEach(id => {
-        document.getElementById(id).addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                this.blur();
-                checkAnswer();
-            }
-        });
+    document.getElementById('answerTable').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && event.target.matches('input')) {
+            event.preventDefault();
+            event.target.blur();
+            checkAnswer();
+        }
     });
 
     function canvasPointFromEvent(event) {
@@ -1665,7 +1619,6 @@ For one group, enter the bearing from ownship to target and the target altitude,
                 const groups = generatePicture(currentGroups);
                 if (!groups) throw new Error('picture generation failed');
                 groupsData = groups;
-                altQuestionIdx = Math.floor(Math.random() * groupsData.length);
             }
             syncRadarPointerMode();
 
@@ -1673,10 +1626,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
             myPositEl.innerText = `${myData.brg}° | ${myData.rng} nm`;
             myPositEl.style.opacity = '1';
 
-            const inputField = document.getElementById('inputBearing');
-            inputField.value = '';
-            document.getElementById('inputRange').value = '';
-            document.getElementById('inputAlt').value = '';
+            document.getElementById('answerTable').replaceChildren();
             updateInputUI();
 
             const resultBox = document.getElementById('resultBox');
@@ -1747,7 +1697,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
         speakUtterances(buildCallUtterances());
 
         if (currentGroups === 1) {
-            setTimeout(() => document.getElementById('inputBearing').focus(), 50);
+            setTimeout(() => document.querySelector('#answerTable input').focus(), 50);
         }
     }
 
@@ -2238,77 +2188,112 @@ For one group, enter the bearing from ownship to target and the target altitude,
 
     // === 켜진 기능/그룹 수에 따른 입력 UI 갱신 ===
     function updateInputUI() {
-        const isPicture = currentGroups > 1;
-        const groupsSetting = getGroupsSetting();
+        buildAnswerTable();
 
-        document.getElementById('bearingRow').style.display = isPicture ? 'none' : 'flex';
-        document.getElementById('rangeRow').style.display =
-            (!isPicture && document.getElementById('answerRangeMode').checked) ? 'flex' : 'none';
-
-        // altitude 질문 라벨 (picture 모드는 지목된 그룹 명시)
-        const altLabel = document.getElementById('altLabel');
-        if (isPicture && groupsData.length > 0) {
-            const groupName = capitalize(groupsData[altQuestionIdx].label.replace(' group', ''));
-            altLabel.innerText = `Enter the altitude of ${groupName} (x1,000 ft)`;
-        } else {
-            altLabel.innerText = 'Enter the altitude of the target (x1,000 ft)';
-        }
-
-        buildAspectArea();
-
-        // Groups>=2에서는 Answer Range·Easy를 dim 처리
-        const dimForPicture = groupsSetting > 1;
-        ['answerRangeMode', 'easyMode'].forEach(id => {
+        // Groups>=2에서는 Easy를 dim 처리
+        const dimForPicture = getGroupsSetting() > 1;
+        ['easyMode'].forEach(id => {
             const el = document.getElementById(id);
             el.disabled = dimForPicture;
             el.parentElement.style.opacity = dimForPicture ? '0.4' : '1';
         });
     }
 
-    // Aspect 답변 버튼 행 생성 (그룹 수만큼)
-    function buildAspectArea() {
-        const area = document.getElementById('aspectArea');
-        area.innerHTML = '';
-        if (!problemAspectOn) {
-            area.style.display = 'none';
-            userAspectAnswers = [];
-            return;
+    const ANSWER_FIELDS = {
+        brg: { header: 'Bearing', placeholder: '000' },
+        rng: { header: 'Range', placeholder: 'nm' },
+        alt: { header: 'Alt ×1000', placeholder: '--' },
+        trk: { header: 'Track' }
+    };
+    const TRACK_ANSWERS = ['HOT', 'FLANK', 'BEAM', 'COLD'];
+
+    function getAnswerFields() {
+        const fields = ['brg'];
+        if (document.getElementById('answerRangeMode').checked) fields.push('rng');
+        fields.push('alt');
+        if (problemAspectOn) fields.push('trk');
+        return fields;
+    }
+
+    // 답안 표의 현재 입력값을 [행][필드] 형태로 읽는다
+    function readAnswerInputs() {
+        const answers = [];
+        document.querySelectorAll('#answerTable [data-field]').forEach(el => {
+            const row = Number(el.dataset.row);
+            answers[row] = answers[row] || {};
+            answers[row][el.dataset.field] = el.value;
+        });
+        return answers;
+    }
+
+    // 답안 표 생성: 그룹마다 한 행, 옵션에 따라 Range·Track 열 추가 (입력 중이던 값은 유지)
+    function buildAnswerTable() {
+        const table = document.getElementById('answerTable');
+        const previous = readAnswerInputs();
+        const rowCount = currentGroups === 1 ? 1 : Math.max(groupsData.length, currentGroups);
+        const fields = getAnswerFields();
+        const showGroupColumn = rowCount > 1;
+
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        if (showGroupColumn) {
+            const th = document.createElement('th');
+            th.className = 'answer-group-col';
+            th.textContent = '#';
+            headerRow.appendChild(th);
         }
-        area.style.display = 'block';
+        fields.forEach(field => {
+            const th = document.createElement('th');
+            th.className = `answer-${field}-col`;
+            th.textContent = ANSWER_FIELDS[field].header;
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
 
-        const count = currentGroups === 1 ? 1 : Math.max(groupsData.length, 1);
-        userAspectAnswers = new Array(count).fill(null);
-
-        const instruction = document.createElement('div');
-        instruction.className = 'answer-instruction';
-        instruction.innerText = count === 1
-            ? 'Choose the track of the target'
-            : 'Choose the track of each group';
-        area.appendChild(instruction);
-
-        for (let i = 0; i < count; i++) {
-            const row = document.createElement('div');
-            row.className = 'aspect-row';
-            if (count > 1) {
-                const lab = document.createElement('span');
-                lab.className = 'aspect-label';
-                lab.innerText = groupsData[i] ? shortLabel(groupsData[i].label) : `G${i + 1}`;
-                row.appendChild(lab);
+        const tbody = document.createElement('tbody');
+        for (let i = 0; i < rowCount; i++) {
+            const tr = document.createElement('tr');
+            const rowName = showGroupColumn ? `Group ${i + 1}` : 'Target';
+            if (showGroupColumn) {
+                const td = document.createElement('td');
+                const badge = document.createElement('span');
+                badge.className = 'group-number-badge';
+                badge.textContent = i + 1;
+                td.appendChild(badge);
+                tr.appendChild(td);
             }
-            ['HOT', 'FLANK', 'BEAM', 'COLD'].forEach(cls => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'aspect-btn';
-                btn.innerText = cls;
-                btn.addEventListener('click', () => {
-                    userAspectAnswers[i] = cls;
-                    row.querySelectorAll('.aspect-btn').forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                });
-                row.appendChild(btn);
+            fields.forEach(field => {
+                const td = document.createElement('td');
+                let control;
+                if (field === 'trk') {
+                    control = document.createElement('select');
+                    ['', ...TRACK_ANSWERS].forEach(value => {
+                        const option = document.createElement('option');
+                        option.value = value;
+                        option.textContent = value || '—';
+                        control.appendChild(option);
+                    });
+                } else {
+                    control = document.createElement('input');
+                    control.type = 'number';
+                    control.inputMode = 'numeric';
+                    control.pattern = '[0-9]*';
+                    control.placeholder = ANSWER_FIELDS[field].placeholder;
+                }
+                control.dataset.row = i;
+                control.dataset.field = field;
+                control.setAttribute('aria-label', `${rowName} ${ANSWER_FIELDS[field].header}`);
+                if (previous[i] && previous[i][field] !== undefined) control.value = previous[i][field];
+                td.appendChild(control);
+                tr.appendChild(td);
             });
-            area.appendChild(row);
+            tbody.appendChild(tr);
         }
+        table.replaceChildren(thead, tbody);
+
+        document.getElementById('answerInstruction').textContent = showGroupColumn
+            ? 'From ownship to each group, in call order'
+            : 'From ownship to the target';
     }
 
     function updateScoreDisplay() {
@@ -2321,127 +2306,69 @@ For one group, enter the bearing from ownship to target and the target altitude,
 
         itemResults = [];
 
-        if (currentGroups === 1) {
-            if (tgtData.rng === 0 && tgtData.brg === 0) return;
+        if (currentGroups === 1 ? (tgtData.rng === 0 && tgtData.brg === 0) : groupsData.length === 0) return;
 
-            const bearingVal = parseInt(document.getElementById('inputBearing').value, 10);
-            const altVal = parseInt(document.getElementById('inputAlt').value, 10);
-            if (isNaN(bearingVal) || isNaN(altVal)) {
-                alert("Bearing과 Alt 값을 입력해주세요.\nPlease enter Bearing and Alt.");
-                return;
-            }
-            const rangeOn = document.getElementById('answerRangeMode').checked;
-            let rangeVal = null;
-            if (rangeOn) {
-                rangeVal = parseInt(document.getElementById('inputRange').value, 10);
-                if (isNaN(rangeVal)) {
-                    alert("Range 값을 입력해주세요.\nPlease enter Range.");
-                    return;
-                }
-            }
-            if (problemAspectOn && !userAspectAnswers[0]) {
-                alert("Track을 선택해주세요.\nPlease select Track.");
-                return;
-            }
+        const fields = getAnswerFields();
+        const answers = readAnswerInputs();
+        const targets = currentGroups === 1
+            ? [{ xy: positToXY(tgtData.brg, tgtData.rng), alt: tgtData.alt, hdg: tgtData.hdg }]
+            : groupsData.map(g => ({ xy: { x: g.x, y: g.y }, alt: g.alt, hdg: g.hdg }));
+        const isMissing = (answer, field) => !answer || answer[field] === '' ||
+            (field !== 'trk' && isNaN(parseInt(answer[field], 10)));
+        if (targets.some((_, i) => fields.some(field => isMissing(answers[i], field)))) {
+            alert("모든 칸을 입력해주세요.\nPlease fill in every field.");
+            return;
+        }
 
-            let diff = Math.abs(bearingVal - trueBearing) % 360;
-            let finalDiff = diff > 180 ? 360 - diff : diff;
+        // Bearing·Range는 실제 ownship에서 각 타겟까지 (ownship 플롯 위치와 무관)
+        const own = positToXY(myData.brg, myData.rng);
+        targets.forEach((target, i) => {
+            const answer = answers[i];
+            const groupIndex = currentGroups > 1 ? i : undefined;
+            const truth = xyToPosit(target.xy.x - own.x, target.xy.y - own.y);
+
+            const bearingVal = parseInt(answer.brg, 10);
+            const diff = Math.abs(bearingVal - truth.brg) % 360;
             itemResults.push({
                 type: 'bearing',
-                label: 'Bearing to Target',
-                ok: finalDiff <= 20,
+                label: 'Bearing',
+                groupIndex,
+                ok: (diff > 180 ? 360 - diff : diff) <= 20,
                 userAns: `${bearingVal.toString().padStart(3, '0')}°`,
-                correctAns: `${trueBearing.toString().padStart(3, '0')}°`
+                correctAns: `${truth.brg.toString().padStart(3, '0')}°`
             });
-            if (rangeOn) {
+            if (fields.includes('rng')) {
+                const rangeVal = parseInt(answer.rng, 10);
                 itemResults.push({
                     type: 'range',
                     label: 'Range',
-                    ok: Math.abs(rangeVal - trueRange) <= 10,
+                    groupIndex,
+                    ok: Math.abs(rangeVal - truth.rng) <= 10,
                     userAns: `${rangeVal} nm`,
-                    correctAns: `${trueRange} nm`
+                    correctAns: `${truth.rng} nm`
                 });
             }
+            const altVal = parseInt(answer.alt, 10);
             itemResults.push({
                 type: 'altitude',
                 label: 'Altitude',
-                ok: altVal === tgtData.alt / 1000,
+                groupIndex,
+                ok: altVal === target.alt / 1000,
                 userAns: `${(altVal * 1000).toLocaleString('en-US')} ft`,
-                correctAns: `${tgtData.alt.toLocaleString('en-US')} ft`
+                correctAns: `${target.alt.toLocaleString('en-US')} ft`
             });
-            if (problemAspectOn) {
-                const actual = classifyAspect(aspectAngle(positToXY(tgtData.brg, tgtData.rng), tgtData.hdg));
+            if (fields.includes('trk')) {
+                const actual = classifyAspect(aspectAngle(target.xy, target.hdg));
                 itemResults.push({
                     type: 'aspect',
                     label: 'Track',
-                    ok: userAspectAnswers[0] === actual,
-                    userAns: userAspectAnswers[0],
+                    groupIndex,
+                    ok: answer.trk === actual,
+                    userAns: answer.trk,
                     correctAns: actual
                 });
             }
-        } else {
-            if (groupsData.length === 0) return;
-
-            if (userClicks.length < groupsData.length + 1) {
-                alert(`캔버스에 위치를 모두 찍어주세요. (내 기체 1 + 그룹 ${groupsData.length})\nPlease plot all positions on the scope. (Ownship 1 + Groups ${groupsData.length})`);
-                return;
-            }
-            const altVal = parseInt(document.getElementById('inputAlt').value, 10);
-            if (isNaN(altVal)) {
-                alert("Alt 값을 입력해주세요.\nPlease enter Alt.");
-                return;
-            }
-            if (problemAspectOn && userAspectAnswers.some(a => !a)) {
-                alert("모든 그룹의 Track을 선택해주세요.\nPlease select Track for every group.");
-                return;
-            }
-
-            // 위치: 클릭 좌표와 실제 좌표 거리 15nm 이내 (ownship 포함 각각 1항목)
-            const tolPx = 15 * SCALE;
-            const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-            const ownXY = positToXY(myData.brg, myData.rng);
-            const ownPix = { x: CENTER + ownXY.x * SCALE, y: CENTER + ownXY.y * SCALE };
-            itemResults.push({
-                type: 'position',
-                label: 'Position',
-                groupIndex: -1,
-                ok: dist(userClicks[0], ownPix) <= tolPx,
-                userAns: '—',
-                correctAns: '—'
-            });
-            groupsData.forEach((g, i) => {
-                const gPix = { x: CENTER + g.x * SCALE, y: CENTER + g.y * SCALE };
-                itemResults.push({
-                    type: 'position',
-                    label: 'Position',
-                    groupIndex: i,
-                    ok: dist(userClicks[i + 1], gPix) <= tolPx,
-                    userAns: '—',
-                    correctAns: '—'
-                });
-                if (problemAspectOn) {
-                    const actual = classifyAspect(aspectAngle({ x: g.x, y: g.y }, g.hdg));
-                    itemResults.push({
-                        type: 'aspect',
-                        label: 'Track',
-                        groupIndex: i,
-                        ok: userAspectAnswers[i] === actual,
-                        userAns: userAspectAnswers[i],
-                        correctAns: actual
-                    });
-                }
-                if (i === altQuestionIdx) {
-                    itemResults.push({
-                        type: 'altitude',
-                        label: 'Altitude',
-                        groupIndex: i,
-                        ok: altVal === g.alt / 1000,
-                        userAns: `${(altVal * 1000).toLocaleString('en-US')} ft`,
-                        correctAns: `${g.alt.toLocaleString('en-US')} ft`
-                    });
-                }
-            });
-        }
+        });
 
         isChecked = true;
         isCorrect = itemResults.every(r => r.ok);
@@ -2503,20 +2430,18 @@ For one group, enter the bearing from ownship to target and the target altitude,
             tbody.appendChild(row);
         };
 
-        const appendGroupHeading = (label, number = null, isOwnship = false) => {
+        const appendGroupHeading = (label, number) => {
             const row = document.createElement('tr');
-            row.className = `result-group-heading${isOwnship ? ' ownship-heading' : ''}`;
+            row.className = 'result-group-heading';
             const cell = document.createElement('th');
             cell.colSpan = 4;
             cell.scope = 'rowgroup';
             const groupLabel = document.createElement('span');
             groupLabel.className = 'group-label';
-            if (number !== null) {
-                const badge = document.createElement('span');
-                badge.className = 'group-number-badge';
-                badge.textContent = number;
-                groupLabel.appendChild(badge);
-            }
+            const badge = document.createElement('span');
+            badge.className = 'group-number-badge';
+            badge.textContent = number;
+            groupLabel.appendChild(badge);
             const text = document.createElement('span');
             text.textContent = label;
             groupLabel.appendChild(text);
@@ -2526,8 +2451,6 @@ For one group, enter the bearing from ownship to target and the target altitude,
         };
 
         if (currentGroups > 1) {
-            appendGroupHeading('Ownship', null, true);
-            results.filter(result => result.groupIndex === -1).forEach(appendResultRow);
             groupsData.forEach((group, index) => {
                 appendGroupHeading(shortLabel(group.label), index + 1);
                 results.filter(result => result.groupIndex === index).forEach(appendResultRow);
@@ -3009,42 +2932,29 @@ For one group, enter the bearing from ownship to target and the target altitude,
 
         if (!isChecked || groupsData.length === 0) return;
 
-        const tolPx = 15 * SCALE;
         const ownXY = positToXY(myData.brg, myData.rng);
-        const ownshipPositionResult = itemResults.find(result => result.type === 'position' && result.groupIndex === -1);
         const points = [{
             x: CENTER + ownXY.x * SCALE,
             y: CENTER + ownXY.y * SCALE,
-            color: '#3498db',
-            ok: ownshipPositionResult && ownshipPositionResult.ok
+            color: '#3498db'
         }];
         groupsData.forEach((g, i) => {
-            const positionResult = itemResults.find(result => result.type === 'position' && result.groupIndex === i);
             points.push({
                 x: CENTER + g.x * SCALE,
                 y: CENTER + g.y * SCALE,
                 color: '#e74c3c',
-                ok: positionResult && positionResult.ok,
                 num: i + 1
             });
         });
 
         points.forEach(p => {
             ctx.beginPath();
-            ctx.arc(p.x, p.y, tolPx, 0, 2 * Math.PI);
-            ctx.strokeStyle = p.ok ? '#2ecc71' : '#e74c3c';
-            ctx.setLineDash([4, 4]);
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            ctx.beginPath();
             ctx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
             ctx.fillStyle = p.color;
             ctx.fill();
 
             if (p.num) {
-                ctx.fillStyle = p.ok ? '#2ecc71' : '#e74c3c';
+                ctx.fillStyle = p.color;
                 ctx.font = "bold 11px 'Segoe UI', Arial, sans-serif";
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
