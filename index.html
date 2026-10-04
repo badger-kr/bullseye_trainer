@@ -592,17 +592,19 @@
             font-weight: bold;
         }
         .target-table th:nth-child(1) { width: 20%; }
-        .target-table th:nth-child(2) { width: 14%; }
-        .target-table th:nth-child(3) { width: 27%; }
-        .target-table th:nth-child(4) { width: 24%; }
-        .target-table th:nth-child(5) { width: 15%; }
+        .target-table th:nth-child(2) { width: 18%; }
+        .target-table th:nth-child(3) { width: 28%; }
+        .target-table th:nth-child(4) { width: 20%; }
+        .target-table th:nth-child(5) { width: 14%; }
         .target-table th:nth-child(2) {
             text-align: center;
         }
         .target-table .position-cell {
-            padding-left: 6px;
-            padding-right: 2px;
-            text-align: left;
+            text-align: center;
+        }
+        /* badge + 최대 4글자 라벨 폭으로 고정해 행마다 시작선을 맞춘 채 열 가운데에 둔다 */
+        .target-table .position-cell .group-label.has-badge {
+            min-width: calc(18px + 5px + 4ch);
         }
         .group-label {
             display: inline-flex;
@@ -1763,6 +1765,7 @@ For one group, enter the bearing from ownship to target and the target altitude,
             const positionLabel = document.createElement('span');
             positionLabel.className = 'group-label';
             if (row.number) {
+                positionLabel.classList.add('has-badge');
                 const badge = document.createElement('span');
                 badge.className = 'group-number-badge';
                 badge.textContent = row.number;
