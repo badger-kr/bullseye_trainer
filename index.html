@@ -76,15 +76,15 @@
         .app-container {
             position: relative;
             display: grid;
-            grid-template-columns: 410px 400px;
+            grid-template-columns: 410px 12px 400px;
             grid-template-areas:
-                "main radar"
-                "answer radar"
-                "result radar"
-                "footer footer";
+                "main toggle radar"
+                "answer toggle radar"
+                "result toggle radar"
+                "footer footer footer";
             background-color: var(--panel-bg);
             padding: 38px 24px 24px;
-            column-gap: 20px;
+            column-gap: 8px;
             row-gap: 9px;
             align-items: start;
             border-radius: 15px;
@@ -210,6 +210,61 @@
             justify-content: center;
             align-items: center;
         }
+        /* 레이더 접기 막대: 데스크톱은 두 pane 사이 세로 막대, 모바일은 가로 막대 */
+        .radar-pane-toggle {
+            grid-area: toggle;
+            align-self: stretch;
+            box-sizing: border-box;
+            display: flex;
+            width: 12px;
+            min-height: 48px;
+            margin: 0;
+            padding: 0;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 6px;
+            background-color: rgba(127, 140, 141, 0.14);
+            color: var(--muted-color);
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        .radar-pane-toggle:hover {
+            background-color: rgba(127, 140, 141, 0.3);
+        }
+        .radar-pane-toggle svg {
+            width: 12px;
+            height: 12px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: transform 0.2s;
+        }
+        .app-container.radar-collapsed .radar-pane-toggle svg {
+            transform: rotate(180deg);
+        }
+        .app-container.radar-collapsed {
+            grid-template-columns: 410px 12px;
+            grid-template-areas:
+                "main toggle"
+                "answer toggle"
+                "result toggle"
+                "footer footer";
+        }
+        /* 접힘: 레이더는 숨기고, Lead Time 카운트다운만 화면 중앙에 띄운다 */
+        .app-container.radar-collapsed .right-panel {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            margin: 0 !important;
+            pointer-events: none;
+        }
+        .app-container.radar-collapsed .radar-toolbar,
+        .app-container.radar-collapsed canvas {
+            display: none;
+        }
         .radar-column {
             width: 400px;
             min-width: min(228px, 100%);
@@ -263,8 +318,7 @@
         .radar-coordinate-toggle[aria-pressed="false"]::before {
             background-color: var(--muted-color);
         }
-        .radar-undo-button,
-        .radar-view-toggle {
+        .radar-undo-button {
             box-sizing: border-box;
             width: 29px;
             height: 25px;
@@ -290,36 +344,6 @@
             height: 18px;
             margin: auto;
             fill: currentColor;
-        }
-        .radar-view-toggle {
-            border-color: #e74c3c;
-        }
-        .radar-view-toggle[aria-pressed="false"] {
-            border-color: var(--muted-color);
-            color: var(--muted-color);
-        }
-        .radar-view-toggle svg {
-            display: block;
-            width: 17px;
-            height: 17px;
-            margin: auto;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-        }
-        .radar-view-toggle .ring-center {
-            fill: currentColor;
-            stroke: none;
-        }
-        /* 레이더 접힘: canvas와 레이더 전용 버튼을 숨겨 모바일 세로 공간을 줄인다 */
-        .radar-column.radar-collapsed canvas,
-        .radar-column.radar-collapsed .radar-coordinate-toggle,
-        .radar-column.radar-collapsed .radar-undo-button {
-            display: none;
-        }
-        /* 접힌 상태에서도 Lead Time 카운트다운은 보이도록 그 동안만 영역을 확보한다 */
-        .radar-column.radar-collapsed .radar-stage:has(.call-countdown:not([hidden])) {
-            height: 84px;
         }
         .call-countdown {
             position: absolute;
@@ -828,6 +852,7 @@
                 grid-template-columns: minmax(0, 1fr);
                 grid-template-areas:
                     "main"
+                    "toggle"
                     "radar"
                     "answer"
                     "result"
@@ -842,6 +867,26 @@
             .left-panel {
                 width: 100%;
                 gap: 6px;
+            }
+            .radar-pane-toggle {
+                width: 100%;
+                height: 22px;
+                min-height: 0;
+            }
+            .radar-pane-toggle svg {
+                transform: rotate(-90deg);
+            }
+            .app-container.radar-collapsed .radar-pane-toggle svg {
+                transform: rotate(90deg);
+            }
+            .app-container.radar-collapsed {
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-areas:
+                    "main"
+                    "toggle"
+                    "answer"
+                    "result"
+                    "footer";
             }
             body {
                 min-height: 100dvh;
@@ -1060,17 +1105,14 @@ Keeps the current Own Bullseye position when generating the next problem. Useful
 
     </div>
 
-    <div class="right-panel">
-        <div class="radar-column" id="radarColumn">
+    <button type="button" class="radar-pane-toggle" id="btnRadarPane" aria-controls="radarPane" aria-expanded="true" title="Hide radar" aria-label="Hide radar">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"></path></svg>
+    </button>
+
+    <div class="right-panel" id="radarPane">
+        <div class="radar-column">
             <div class="radar-toolbar">
                     <button type="button" id="radarCoordinateToggle" class="radar-coordinate-toggle" aria-pressed="true" aria-label="Turn Bullseye coordinate view off">BULLS ---° / -- nm</button>
-                    <button type="button" id="btnRadarView" class="radar-view-toggle" aria-pressed="true" aria-controls="radarStage" title="Hide radar" aria-label="Hide radar">
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <circle cx="12" cy="12" r="5.5"></circle>
-                            <circle cx="12" cy="12" r="1.5" class="ring-center"></circle>
-                        </svg>
-                    </button>
                     <button type="button" id="btnUndoPlot" class="radar-undo-button" title="Undo the last plot" aria-label="Undo the last plot" disabled>
                         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                             <path d="M8.5 4.2V1.3L1.4 8.1l7.1 6.8v-3.2c5.4 0 9.2 2.1 12.1 7.1-.5-8.2-4.4-13.3-12.1-14.6Z"></path>
@@ -1109,7 +1151,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     const ctx = canvas.getContext('2d');
     const radarCoordinateToggle = document.getElementById('radarCoordinateToggle');
     const btnUndoPlot = document.getElementById('btnUndoPlot');
-    const btnRadarView = document.getElementById('btnRadarView');
+    const btnRadarPane = document.getElementById('btnRadarPane');
 
     const CANVAS_SIZE = 400;      // 그리기 좌표계 크기 (실제 픽셀 수는 devicePixelRatio배)
     const CENTER = 200;
@@ -1494,14 +1536,14 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
 
     function applyRadarVisibility() {
         const label = isRadarVisible ? 'Hide radar' : 'Show radar';
-        document.getElementById('radarColumn').classList.toggle('radar-collapsed', !isRadarVisible);
-        btnRadarView.setAttribute('aria-pressed', String(isRadarVisible));
-        btnRadarView.setAttribute('aria-label', label);
-        btnRadarView.title = label;
+        document.querySelector('.app-container').classList.toggle('radar-collapsed', !isRadarVisible);
+        btnRadarPane.setAttribute('aria-expanded', String(isRadarVisible));
+        btnRadarPane.setAttribute('aria-label', label);
+        btnRadarPane.title = label;
         alignRadarWithGenerateButtons();
     }
 
-    btnRadarView.addEventListener('click', function() {
+    btnRadarPane.addEventListener('click', function() {
         isRadarVisible = !isRadarVisible;
         applyRadarVisibility();
         saveSettings();
@@ -1639,7 +1681,7 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
 
     function alignRadarWithGenerateButtons() {
         const radarPanel = document.querySelector('.right-panel');
-        if (window.innerWidth <= 900) {
+        if (window.innerWidth <= 900 || !isRadarVisible) {
             radarPanel.style.marginTop = '0';
             return;
         }
