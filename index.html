@@ -946,9 +946,9 @@
             .data-table th,
             .data-table td { padding: 4px 2px; }
             #resultBox { padding: 4px; }
+            /* 모바일은 위치 파악이 쉽도록 레이더가 앱 폭 전체를 쓴다 (세로 공간은 접기 막대로 조절) */
             .radar-column {
-                width: min(100%, 42vh);
-                max-width: 380px;
+                width: 100%;
             }
         }
 
@@ -956,7 +956,6 @@
             .title-container h1 { font-size: 18px; }
             .title-container .subtitle { font-size: 11px; }
             .badger-credit { font-size: 12px; }
-            .radar-column { width: min(100%, 34vh); }
         }
 
         /* 360px급 소형 화면: 고정폭 표 내용이 열 폭을 넘지 않도록 글자를 한 단계 줄인다 */
