@@ -187,16 +187,14 @@
             </tbody>
         </table>
 
-        <h2 id="enhanced-voice">Enhanced Voice 설정 (iPhone·iPad)</h2>
-        <p>iPhone·iPad의 Safari는 기기에 설치된 Apple 음성만 사용할 수 있습니다. 기본으로 설치된 음성은 저용량 버전이라 발음이 부정확하게 들릴 수 있습니다. 고음질 Enhanced 음성을 내려받으면 앱이 Voice gender에 맞춰 그 음성을 자동으로 사용합니다.</p>
-        <ol>
-            <li>iPhone·iPad의 <strong>Settings</strong>(설정)을 엽니다.</li>
-            <li><strong>Accessibility</strong>(손쉬운 사용) &gt; <strong>Read &amp; Speak</strong> &gt; <strong>Voices</strong> &gt; <strong>English</strong> &gt; <strong>Voice</strong>로 이동합니다. 기기 언어가 한국어이면 같은 위치의 한국어 메뉴를 따라가면 됩니다.</li>
-            <li>Enhanced 버전이 있는 음성을 고릅니다. 여성은 Samantha, Ava, Allison, Joelle, Nicky, Noelle, 남성은 Aaron, Evan, Nathan입니다.</li>
-            <li>음성 이름 옆에 Enhanced가 붙은 항목의 다운로드 아이콘을 눌러 내려받습니다. 용량이 커서 Wi-Fi에서 받는 것이 좋습니다.</li>
-            <li>다운로드가 끝나면 Bullseye Trainer 페이지를 새로고침합니다.</li>
-        </ol>
-        <p>Male을 골랐는데 남성 음성이 설치되어 있지 않으면 영국 영어 Daniel처럼 다른 영어권 남성 음성을 사용합니다. 무음 스위치가 켜져 있으면 음성이 나오지 않으니 무음 모드를 해제하세요.</p>
+        <h2 id="iphone-voice">iPhone·iPad 음성 안내</h2>
+        <p>iPhone·iPad의 Safari는 웹페이지에 기기의 기본 음성만 제공합니다. 설정에서 Enhanced(고음질) 음성을 내려받아도 Safari에는 나타나지 않는 것을 실제 기기에서 확인했습니다. 그래서 iPhone에서는 컴퓨터의 Chrome이나 Edge보다 발음이 다소 부정확하게 들릴 수 있습니다.</p>
+        <ul>
+            <li>앱은 Safari가 제공하는 음성 중 가장 또렷한 음성을 자동으로 고릅니다. 예를 들어 Samantha가 두 개 있으면 더 작은 super-compact 대신 compact 음성을 씁니다. 따로 설정할 것은 없습니다.</li>
+            <li>Male을 고르면, iPhone 기본 미국 영어 남성 음성은 기계음뿐이라 영국 영어 Daniel처럼 다른 영어권 남성 음성을 씁니다.</li>
+            <li>더 또렷한 음성이 필요하면 컴퓨터의 Chrome이나 Edge에서 사용하세요. Chrome은 Google 음성, Edge는 Microsoft Natural 음성을 쓸 수 있습니다.</li>
+            <li>무음 스위치가 켜져 있으면 음성이 나오지 않으니 무음 모드를 해제하세요.</li>
+        </ul>
 
         <h2>버튼과 화면 사용 팁</h2>
         <ul>
@@ -269,16 +267,14 @@
             </tbody>
         </table>
 
-        <h2 id="enhanced-voice-en">Enhanced Voice setup (iPhone and iPad)</h2>
-        <p>Safari on iPhone and iPad can use only the Apple voices installed on the device. The preinstalled voices are compact versions and can sound unclear. After you download a high-quality Enhanced voice, the app uses it automatically to match Voice gender.</p>
-        <ol>
-            <li>Open <strong>Settings</strong> on your iPhone or iPad.</li>
-            <li>Go to <strong>Accessibility</strong> &gt; <strong>Read &amp; Speak</strong> &gt; <strong>Voices</strong> &gt; <strong>English</strong> &gt; <strong>Voice</strong>.</li>
-            <li>Choose a voice that has an Enhanced version. Female voices are Samantha, Ava, Allison, Joelle, Nicky, and Noelle. Male voices are Aaron, Evan, and Nathan.</li>
-            <li>Tap the download icon next to the Enhanced item for that voice. The files are large, so use Wi-Fi.</li>
-            <li>When the download finishes, reload the Bullseye Trainer page.</li>
-        </ol>
-        <p>If you choose Male and no male voice is installed, the app uses a male voice from another English region, such as British English Daniel. Voice calls are silent while the Ring/Silent switch is set to Silent.</p>
+        <h2 id="iphone-voice-en">Voice on iPhone and iPad</h2>
+        <p>Safari on iPhone and iPad gives web pages only the device's built-in voices. We confirmed on a real device that Enhanced (high-quality) voices downloaded in Settings do not appear in Safari. As a result, speech on iPhone can sound less clear than in Chrome or Edge on a computer.</p>
+        <ul>
+            <li>The app automatically picks the clearest voice Safari provides. For example, when there are two Samantha voices, it uses the compact voice instead of the smaller super-compact one. No setup is needed.</li>
+            <li>If you choose Male, the built-in US English male voices on iPhone are robotic, so the app uses a male voice from another English region, such as British English Daniel.</li>
+            <li>For a clearer voice, use Chrome or Edge on a computer. Chrome can use Google voices, and Edge can use Microsoft Natural voices.</li>
+            <li>Voice calls are silent while the Ring/Silent switch is set to Silent.</li>
+        </ul>
 
         <h2>Buttons and display tips</h2>
         <ul>
@@ -310,7 +306,7 @@
         button.addEventListener('click', () => showLanguage(button.dataset.language));
     });
 
-    // 숨겨진 언어 섹션의 앵커(예: #enhanced-voice-en)로 들어오면 그 언어로 바꾼 뒤 이동한다
+    // 숨겨진 언어 섹션의 앵커(예: #iphone-voice-en)로 들어오면 그 언어로 바꾼 뒤 이동한다
     const anchorTarget = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
     const anchorSection = anchorTarget && anchorTarget.closest('[data-guide-language]');
     if (anchorSection && anchorSection.hidden) {
