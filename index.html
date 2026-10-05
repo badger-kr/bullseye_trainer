@@ -1462,7 +1462,14 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
         updateInputUI();
     });
     document.querySelectorAll('input[name="groups"]').forEach(radio => {
-        radio.addEventListener('change', updateInputUI);
+        radio.addEventListener('change', function() {
+            // 첫 Generate 전(문제 없음)에만 표 행 수를 바로 바꾼다. 풀이 중에는 다음 Generate부터 적용
+            if (!hasActiveProblem()) {
+                currentGroups = getGroupsSetting();
+                updateTargetPositUI();
+            }
+            updateInputUI();
+        });
     });
 
     // 모든 토글/설정 변경 시 localStorage 저장
