@@ -1276,8 +1276,9 @@ Enter the bearing from ownship and the altitude of each target in the table. Als
     }
 
     // iOS Enhanced 음성(Aaron·Evan·Nathan / Allison·Ava·Joelle·Nicky·Noelle·Samantha)을 포함한 성별 후보
+    // Mac Chrome은 Daniel 등 macOS 음성을 지정해도 여성 기본 음성으로 읽으므로 Google UK English Male을 남성 후보로 둔다
     const VOICE_GENDER_HINTS = {
-        male: ['aaron', 'evan', 'nathan', 'alex', 'daniel', 'david', 'guy', 'eric', 'matthew', 'joey', 'justin', 'brian', 'arthur', 'roger', 'ryan', 'christopher', 'liam', 'mark', 'gordon', 'rishi'],
+        male: ['aaron', 'evan', 'nathan', 'alex', 'daniel', 'david', 'guy', 'eric', 'matthew', 'joey', 'justin', 'brian', 'arthur', 'roger', 'ryan', 'christopher', 'liam', 'mark', 'gordon', 'rishi', 'google uk english male'],
         female: ['samantha', 'ava', 'allison', 'joelle', 'noelle', 'nicky', 'victoria', 'karen', 'susan', 'zira', 'aria', 'jenny', 'joanna', 'kimberly', 'salli', 'ivy', 'emma', 'olivia', 'michelle', 'sonia', 'natasha', 'google us english']
     };
     // Apple 기계음·효과음 음성은 발음이 부정확해 후보에서 뺀다
